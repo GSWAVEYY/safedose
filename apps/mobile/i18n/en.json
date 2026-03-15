@@ -1,0 +1,36 @@
+{
+  "tabs": {
+    "medications": "Medications",
+    "schedule": "Schedule",
+    "caregiving": "Caregiving",
+    "emergency": "Emergency",
+    "settings": "Settings"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry"
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Create Account",
+    "email": "Email",
+    "phone": "Phone Number",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?"
+  },
+  "medications": {
+    "title": "My Medications",
+    "addMedication": "Add Medication",
+    "scanBottle": "Scan Bottle",
+    "current": "Current",
+    "paused": "Paused",
+    "discontinued": "Discontinued",
+    "noMedications": "No medications added yet"
+  }
+}

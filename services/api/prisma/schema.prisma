@@ -1,0 +1,161 @@
+// SafeDose — Prisma Schema
+// Database: PostgreSQL (Neon for production)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum CaregiverRole {
+  primary
+  secondary
+  observer
+}
+
+enum CaregiverStatus {
+  pending
+  accepted
+  revoked
+  expired
+}
+
+enum DoseEventType {
+  scheduled
+  taken
+  missed
+  skipped
+  late
+  caregiver_confirmed
+}
+
+enum DevicePlatform {
+  ios
+  android
+  web
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id               String   @id @default(uuid()) @db.Uuid
+  phone            String?  @unique
+  email            String?  @unique
+  displayName      String   @map("display_name")
+  locale           String   @default("en") @db.VarChar(8)
+  emergencyQrToken String   @unique @map("emergency_qr_token") @db.VarChar(32)
+  createdAt        DateTime @default(now()) @map("created_at")
+  lastSeen         DateTime @default(now()) @map("last_seen")
+
+  // Relations
+  caregiverRelationshipsAsPatient   CaregiverRelationship[] @relation("PatientRelationships")
+  caregiverRelationshipsAsCaregiver CaregiverRelationship[] @relation("CaregiverRelationships")
+  medicationSyncs                   MedicationSync[]
+  doseEvents                        DoseEvent[]             @relation("PatientDoseEvents")
+  deviceTokens                      DeviceToken[]
+  emergencyCard                     EmergencyCardPublic?
+  auditLogsAsUser                   AuditLog[]              @relation("AuditUser")
+  auditLogsAsActor                  AuditLog[]              @relation("AuditActor")
+
+  @@map("users")
+}
+
+model CaregiverRelationship {
+  id          String          @id @default(uuid()) @db.Uuid
+  patientId   String          @map("patient_id") @db.Uuid
+  caregiverId String          @map("caregiver_id") @db.Uuid
+  role        CaregiverRole
+  status      CaregiverStatus @default(pending)
+  permissions Json            @default("{}") // CaregiverPermissions JSON
+  invitedAt   DateTime        @default(now()) @map("invited_at")
+  acceptedAt  DateTime?       @map("accepted_at")
+
+  patient   User @relation("PatientRelationships", fields: [patientId], references: [id], onDelete: Cascade)
+  caregiver User @relation("CaregiverRelationships", fields: [caregiverId], references: [id], onDelete: Cascade)
+
+  @@unique([patientId, caregiverId])
+  @@index([patientId])
+  @@index([caregiverId])
+  @@map("caregiver_relationships")
+}
+
+model MedicationSync {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  localId          String   @map("local_id") @db.VarChar(64)
+  encryptedPayload String   @map("encrypted_payload") @db.Text
+  checksum         String   @db.VarChar(64)
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, localId])
+  @@index([userId])
+  @@map("medication_sync")
+}
+
+model DoseEvent {
+  id             String        @id @default(uuid()) @db.Uuid
+  patientId      String        @map("patient_id") @db.Uuid
+  eventType      DoseEventType @map("event_type")
+  medicationName String        @map("medication_name")
+  scheduledAt    DateTime      @map("scheduled_at")
+  confirmedAt    DateTime?     @map("confirmed_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  patient User @relation("PatientDoseEvents", fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([patientId, scheduledAt])
+  @@map("dose_events")
+}
+
+model DeviceToken {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  token     String         @unique @db.VarChar(512)
+  platform  DevicePlatform
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+model EmergencyCardPublic {
+  userId    String   @id @map("user_id") @db.Uuid
+  qrToken   String   @unique @map("qr_token") @db.VarChar(32)
+  data      Json     // EmergencyCard JSON (no sensitive server fields)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("emergency_cards_public")
+}
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     String?  @map("user_id") @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String   @db.VarChar(128)
+  entityType String?  @map("entity_type") @db.VarChar(64)
+  entityId   String?  @map("entity_id") @db.VarChar(128)
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.VarChar(512)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user  User? @relation("AuditUser", fields: [userId], references: [id], onDelete: SetNull)
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_log")
+}

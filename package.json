@@ -1,0 +1,38 @@
+{
+  "name": "safedose",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter './apps/*' --filter './services/*' run dev --parallel",
+    "dev:api": "pnpm --filter @safedose/api run dev",
+    "dev:mobile": "pnpm --filter @safedose/mobile run dev",
+    "build": "pnpm --filter './packages/*' run build && pnpm --filter './apps/*' --filter './services/*' run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "prisma:generate": "pnpm --filter @safedose/api run prisma:generate",
+    "prisma:migrate": "pnpm --filter @safedose/api run prisma:migrate",
+    "prisma:studio": "pnpm --filter @safedose/api run prisma:studio"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "bcrypt",
+      "esbuild",
+      "prisma"
+    ]
+  }
+}

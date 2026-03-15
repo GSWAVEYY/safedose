@@ -1,0 +1,23 @@
+{
+  "name": "@safedose/drug-db-builder",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "build-db": "tsx src/index.ts all",
+    "fetch": "tsx src/index.ts fetch",
+    "build:db": "tsx src/index.ts build"
+  },
+  "dependencies": {
+    "sql.js": "^1.10.0",
+    "commander": "^12.1.0",
+    "ora": "^8.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.4.5"
+  }
+}

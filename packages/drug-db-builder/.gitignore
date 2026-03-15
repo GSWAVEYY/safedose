@@ -1,0 +1,12 @@
+# Build artifacts
+dist/
+
+# Downloaded raw data (re-fetchable, large)
+data/
+
+# Built SQLite databases
+output/
+*.db
+
+# TypeScript cache
+*.tsbuildinfo

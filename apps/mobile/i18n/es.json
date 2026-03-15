@@ -1,0 +1,36 @@
+{
+  "tabs": {
+    "medications": "Medicamentos",
+    "schedule": "Horario",
+    "caregiving": "Cuidador",
+    "emergency": "Emergencia",
+    "settings": "Ajustes"
+  },
+  "common": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Agregar",
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "retry": "Reintentar"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "register": "Crear Cuenta",
+    "email": "Correo Electrónico",
+    "phone": "Número de Teléfono",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu Contraseña?"
+  },
+  "medications": {
+    "title": "Mis Medicamentos",
+    "addMedication": "Agregar Medicamento",
+    "scanBottle": "Escanear Frasco",
+    "current": "Actuales",
+    "paused": "Pausados",
+    "discontinued": "Descontinuados",
+    "noMedications": "No hay medicamentos agregados aún"
+  }
+}
