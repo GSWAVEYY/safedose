@@ -18,6 +18,7 @@
 
 import { prisma } from './db.js';
 import { sendMissedDoseAlert } from './push.js';
+import { logger } from './logger.js';
 
 // How far back we look for unnotified missed doses (60 minutes)
 const LOOKBACK_WINDOW_MS = 60 * 60 * 1000;
@@ -91,20 +92,17 @@ export async function checkMissedDoses(): Promise<CheckResult> {
     } catch (err) {
       errors++;
       // Log with event ID for ops visibility — do NOT include medicationName in logs (PHI)
-      console.error(
-        '[dose-monitor] sendMissedDoseAlert failed for event %s (patient %s): %o',
-        event.id,
-        event.patientId,
-        err
+      // PHI RULE: do NOT log medicationName — event ID + patient ID is sufficient for ops
+      logger.error(
+        { err, eventId: event.id, patientId: event.patientId },
+        '[dose-monitor] sendMissedDoseAlert failed'
       );
     }
   }
 
-  console.info(
-    '[dose-monitor] checkMissedDoses: processed=%d alerted=%d errors=%d',
-    unnotifiedEvents.length,
-    alerted,
-    errors
+  logger.info(
+    { processed: unnotifiedEvents.length, alerted, errors },
+    '[dose-monitor] checkMissedDoses complete'
   );
 
   return { processed: unnotifiedEvents.length, alerted, errors };

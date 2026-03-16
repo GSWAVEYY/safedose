@@ -124,19 +124,19 @@ const CREATE_SYMPTOMS = `
   CREATE TABLE IF NOT EXISTS symptoms (
     id            TEXT    PRIMARY KEY NOT NULL,
     user_id       TEXT    NOT NULL,
-    medication_id TEXT,
-    description   TEXT    NOT NULL,
-    severity      INTEGER NOT NULL CHECK(severity BETWEEN 1 AND 5),
+    symptoms      TEXT    NOT NULL DEFAULT '[]',
+    severity      INTEGER NOT NULL CHECK(severity BETWEEN 1 AND 10),
     reported_at   INTEGER NOT NULL,
     notes         TEXT,
+    created_at    INTEGER NOT NULL,
+    deleted_at    INTEGER,
     synced_at     INTEGER
   );
 `;
 
 const CREATE_SYMPTOMS_INDEXES = `
-  CREATE INDEX IF NOT EXISTS idx_symptoms_user_id       ON symptoms (user_id);
-  CREATE INDEX IF NOT EXISTS idx_symptoms_medication_id ON symptoms (medication_id);
-  CREATE INDEX IF NOT EXISTS idx_symptoms_reported_at   ON symptoms (reported_at);
+  CREATE INDEX IF NOT EXISTS idx_symptoms_user_id    ON symptoms (user_id);
+  CREATE INDEX IF NOT EXISTS idx_symptoms_reported_at ON symptoms (reported_at);
 `;
 
 const CREATE_SYNC_QUEUE = `
@@ -214,6 +214,51 @@ const MIGRATIONS: Migration[] = [
       // emergency_contact_name, emergency_contact_phone, or primary_physician columns.
       // These UPDATE statements were removed after Shield audit identified them as
       // referencing non-existent columns, which caused a crash loop.
+    },
+  },
+  {
+    version: 3,
+    description: 'symptoms — replace description+severity(1-5) with symptoms JSON array + severity(1-10), add created_at/deleted_at',
+    up: async (db) => {
+      // SQLite does not support DROP COLUMN on tables with CHECK constraints,
+      // so we use the recommended rename-create-copy-drop pattern.
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS symptoms_new (
+          id            TEXT    PRIMARY KEY NOT NULL,
+          user_id       TEXT    NOT NULL,
+          symptoms      TEXT    NOT NULL DEFAULT '[]',
+          severity      INTEGER NOT NULL CHECK(severity BETWEEN 1 AND 10),
+          reported_at   INTEGER NOT NULL,
+          notes         TEXT,
+          created_at    INTEGER NOT NULL,
+          deleted_at    INTEGER,
+          synced_at     INTEGER
+        );
+      `);
+      // Migrate existing rows: wrap old description string in a JSON array,
+      // map severity 1-5 → 1-10 by doubling (clamped to 10).
+      await db.execAsync(`
+        INSERT INTO symptoms_new
+          (id, user_id, symptoms, severity, reported_at, notes, created_at, synced_at)
+        SELECT
+          id,
+          user_id,
+          json_array(description),
+          MIN(severity * 2, 10),
+          reported_at,
+          notes,
+          reported_at,
+          synced_at
+        FROM symptoms;
+      `);
+      await db.execAsync('DROP TABLE symptoms;');
+      await db.execAsync('ALTER TABLE symptoms_new RENAME TO symptoms;');
+      await db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_symptoms_user_id    ON symptoms (user_id);'
+      );
+      await db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_symptoms_reported_at ON symptoms (reported_at);'
+      );
     },
   },
 ];

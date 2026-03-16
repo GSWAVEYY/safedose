@@ -24,6 +24,7 @@ import {
   REFRESH_TOKEN_TTL_MS,
 } from '../lib/auth.js';
 import { verifyJwt } from '../middleware/auth.js';
+import { authRateLimit } from '../middleware/rate-limit.js';
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 
@@ -241,7 +242,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
 
   // ── POST /auth/refresh ────────────────────────────────────────────────────
 
-  server.post('/refresh', async (request, reply) => {
+  server.post('/refresh', authRateLimit, async (request, reply) => {
     const result = refreshSchema.safeParse(request.body);
     if (!result.success) {
       return reply.status(400).send({
@@ -295,7 +296,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
 
   // ── POST /auth/logout ─────────────────────────────────────────────────────
 
-  server.post('/logout', async (request, reply) => {
+  server.post('/logout', authRateLimit, async (request, reply) => {
     const result = logoutSchema.safeParse(request.body);
     if (!result.success) {
       // Best-effort logout — don't fail the client if the body is missing
@@ -323,6 +324,21 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+
+    // Revoke all caregiver relationships (both sides — as patient and as caregiver)
+    // so that former caregivers lose access immediately and the account has no
+    // dangling active relationships after deletion.
+    await prisma.caregiverRelationship.updateMany({
+      where: {
+        OR: [{ patientId: userId }, { caregiverId: userId }],
+        status: { not: 'revoked' },
+      },
+      data: { status: 'revoked', inviteToken: null },
+    });
+
+    // Remove all device tokens to prevent ghost push notifications being sent
+    // to a device belonging to a deleted account.
+    await prisma.deviceToken.deleteMany({ where: { userId } });
 
     // Soft delete
     await prisma.user.update({

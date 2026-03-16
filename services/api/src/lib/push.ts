@@ -15,6 +15,7 @@
 
 import { Expo, type ExpoPushMessage, type ExpoPushTicket } from 'expo-server-sdk';
 import { prisma } from './db.js';
+import { logger } from './logger.js';
 
 // ─── Expo client (lazy singleton) ─────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ export async function sendPushNotification(
   tokens: string[],
   title: string,
   body: string,
-  data: Record<string, string> = {}
+  data: Record<string, unknown> = {}
 ): Promise<number> {
   const expo = getExpo();
 
@@ -89,7 +90,7 @@ export async function sendPushNotification(
       tickets = await expo.sendPushNotificationsAsync(chunk);
     } catch (err) {
       // Network / server error — log and skip this chunk, don't crash the caller
-      console.error('[push] sendPushNotification: chunk send failed:', err);
+      logger.error({ err }, '[push] sendPushNotification: chunk send failed');
       continue;
     }
 
@@ -100,11 +101,13 @@ export async function sendPushNotification(
       if (ticket.status === 'ok') {
         successCount++;
       } else if (ticket.status === 'error') {
-        console.error(
-          '[push] ticket error for token %s: %s — %s',
-          chunk[i]?.to ?? 'unknown',
-          ticket.details?.error ?? 'unknown',
-          ticket.message
+        logger.error(
+          {
+            token: chunk[i]?.to ?? 'unknown',
+            errorCode: ticket.details?.error ?? 'unknown',
+            message: ticket.message,
+          },
+          '[push] ticket error'
         );
 
         // Remove stale / invalid tokens immediately so they don't accumulate
@@ -155,7 +158,10 @@ async function getCaregiverIdsWithPermission(
 
   return relationships
     .filter((r: typeof relationships[number]) => {
-      const perms = r.permissions as Record<string, boolean>;
+      const perms =
+        typeof r.permissions === 'object' && r.permissions !== null && !Array.isArray(r.permissions)
+          ? (r.permissions as Record<string, unknown>)
+          : {};
       return perms[permissionKey] === true;
     })
     .map((r: typeof relationships[number]) => r.caregiverId as string);
@@ -197,17 +203,17 @@ export async function sendMissedDoseAlert(
   const tokens = await getPushTokensForUsers(caregiverIds);
   if (tokens.length === 0) return;
 
-  const data: Record<string, string> = {
+  const data: CaregiverAlertData = {
     type: 'missed_dose',
     patientId,
     medicationName, // PHI — only in data, never in title/body
-  } satisfies CaregiverAlertData as unknown as Record<string, string>;
+  };
 
   await sendPushNotification(
     tokens,
     'SafeDose Alert',
     'A medication dose was missed.',
-    data
+    { ...data }
   );
 }
 
@@ -226,16 +232,16 @@ export async function sendNewMedAlert(patientId: string): Promise<void> {
   const tokens = await getPushTokensForUsers(caregiverIds);
   if (tokens.length === 0) return;
 
-  const data: Record<string, string> = {
+  const data: Omit<CaregiverAlertData, 'medicationName'> = {
     type: 'new_med',
     patientId,
-  } satisfies Omit<CaregiverAlertData, 'medicationName'> as unknown as Record<string, string>;
+  };
 
   await sendPushNotification(
     tokens,
     'SafeDose',
     'Your patient added a new medication.',
-    data
+    { ...data }
   );
 }
 
@@ -254,10 +260,10 @@ export async function sendInteractionAlert(patientId: string): Promise<void> {
   const tokens = await getPushTokensForUsers(caregiverIds);
   if (tokens.length === 0) return;
 
-  const data: Record<string, string> = {
+  const data: Omit<CaregiverAlertData, 'medicationName'> = {
     type: 'interaction',
     patientId,
-  } satisfies Omit<CaregiverAlertData, 'medicationName'> as unknown as Record<string, string>;
+  };
 
   await sendPushNotification(
     tokens,
@@ -278,9 +284,9 @@ async function deleteInvalidTokens(tokens: string[]): Promise<void> {
     await prisma.deviceToken.deleteMany({
       where: { token: { in: tokens } },
     });
-    console.info('[push] removed %d invalid device token(s)', tokens.length);
+    logger.info({ count: tokens.length }, '[push] removed invalid device token(s)');
   } catch (err) {
     // Non-fatal — stale tokens will just bounce silently on the next send
-    console.error('[push] deleteInvalidTokens failed:', err);
+    logger.error({ err }, '[push] deleteInvalidTokens failed');
   }
 }

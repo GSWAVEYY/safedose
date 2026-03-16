@@ -58,9 +58,20 @@ export interface MedicationUpdate extends Partial<MedicationCreate> {
 export interface Symptom {
   id: string;
   userId: string;
-  medicationId?: string; // linked to a medication if reported in context
-  description: string;
-  severity: 1 | 2 | 3 | 4 | 5; // 1=mild, 5=severe
+  /** Tags from the standard symptom list (e.g. 'headache', 'nausea'). Stored as JSON array. */
+  symptoms: string[];
+  /** 1 = mild, 10 = severe */
+  severity: number;
   reportedAt: string; // ISO 8601
   notes?: string;
+  createdAt: string; // ISO 8601
+  deletedAt?: string; // ISO 8601 — soft delete
 }
+
+export interface SymptomInput {
+  symptoms: string[];
+  severity: number;
+  notes?: string;
+}
+
+export type SymptomFrequency = Record<string, number>;

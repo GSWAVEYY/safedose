@@ -96,7 +96,8 @@ describe('getOrCreateEncryptionKey', () => {
   });
 
   it('does not call setItemAsync on the second call (key reuse)', async () => {
-    const SecureStore = await import('expo-secure-store');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const SecureStore = await (import('expo-secure-store') as Promise<typeof import('expo-secure-store')>);
     const spy = vi.spyOn(SecureStore, 'setItemAsync');
 
     await getOrCreateEncryptionKey(); // first call — generates and stores

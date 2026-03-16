@@ -355,8 +355,11 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
     // Filter to only patients where viewDoseHistory permission is granted
     const patientIds = caregiverRelationships
       .filter((r: typeof caregiverRelationships[number]) => {
-        const perms = r.permissions as Record<string, boolean> | null;
-        return perms?.['viewDoseHistory'] === true;
+        const perms =
+          typeof r.permissions === 'object' && r.permissions !== null && !Array.isArray(r.permissions)
+            ? (r.permissions as Record<string, unknown>)
+            : {};
+        return perms['viewDoseHistory'] === true;
       })
       .map((r: typeof caregiverRelationships[number]) => r.patientId);
 
