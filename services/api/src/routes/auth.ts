@@ -102,7 +102,9 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
 
   // ── POST /auth/register ───────────────────────────────────────────────────
 
-  server.post('/register', async (request, reply) => {
+  server.post('/register', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+  }, async (request, reply) => {
     const result = registerSchema.safeParse(request.body);
     if (!result.success) {
       return reply.status(400).send({
@@ -165,7 +167,9 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
 
   // ── POST /auth/login ──────────────────────────────────────────────────────
 
-  server.post('/login', async (request, reply) => {
+  server.post('/login', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+  }, async (request, reply) => {
     const result = loginSchema.safeParse(request.body);
     if (!result.success) {
       return reply.status(400).send({

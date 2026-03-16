@@ -64,6 +64,7 @@ model User {
   auditLogsAsUser                   AuditLog[]              @relation("AuditUser")
   auditLogsAsActor                  AuditLog[]              @relation("AuditActor")
   refreshTokens                     RefreshToken[]
+  notificationPreferences           NotificationPreferences?
 
   @@map("users")
 }
@@ -119,18 +120,20 @@ model MedicationSync {
 }
 
 model DoseEvent {
-  id             String        @id @default(uuid()) @db.Uuid
-  patientId      String        @map("patient_id") @db.Uuid
-  eventType      DoseEventType @map("event_type")
-  medicationName String        @map("medication_name")
-  scheduledAt    DateTime      @map("scheduled_at")
-  confirmedAt    DateTime?     @map("confirmed_at")
-  createdAt      DateTime      @default(now()) @map("created_at")
+  id                   String        @id @default(uuid()) @db.Uuid
+  patientId            String        @map("patient_id") @db.Uuid
+  eventType            DoseEventType @map("event_type")
+  medicationName       String        @map("medication_name")
+  scheduledAt          DateTime      @map("scheduled_at")
+  confirmedAt          DateTime?     @map("confirmed_at")
+  notificationSent     Boolean       @default(false) @map("notification_sent")
+  createdAt            DateTime      @default(now()) @map("created_at")
 
   patient User @relation("PatientDoseEvents", fields: [patientId], references: [id], onDelete: Cascade)
 
   @@index([patientId])
   @@index([patientId, scheduledAt])
+  @@index([eventType, notificationSent, createdAt])
   @@map("dose_events")
 }
 
@@ -156,6 +159,19 @@ model EmergencyCardPublic {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("emergency_cards_public")
+}
+
+model NotificationPreferences {
+  id          String  @id @default(uuid()) @db.Uuid
+  userId      String  @unique @map("user_id") @db.Uuid
+  missedDose  Boolean @default(true) @map("missed_dose")
+  newMed      Boolean @default(true) @map("new_med")
+  interaction Boolean @default(true)
+  lowRefill   Boolean @default(true) @map("low_refill")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
 }
 
 model AuditLog {

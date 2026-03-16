@@ -16,12 +16,22 @@ const server = Fastify({
 });
 
 async function start(): Promise<void> {
+  // SECURITY: Explicit CORS origin required in production — no wildcard fallback
+  const corsOrigin = process.env['CORS_ORIGIN'];
+  if (!corsOrigin && process.env['NODE_ENV'] === 'production') {
+    throw new Error('FATAL: CORS_ORIGIN environment variable must be set in production');
+  }
   await server.register(cors, {
-    origin: process.env['CORS_ORIGIN'] ?? true,
+    origin: corsOrigin ?? false,
   });
 
+  // SECURITY: JWT secret must be set — no weak fallback
+  const jwtSecret = process.env['JWT_SECRET'];
+  if (!jwtSecret && process.env['NODE_ENV'] === 'production') {
+    throw new Error('FATAL: JWT_SECRET environment variable must be set in production');
+  }
   await server.register(fastifyJwt, {
-    secret: process.env['JWT_SECRET'] ?? 'dev-secret-change-in-prod',
+    secret: jwtSecret ?? 'dev-only-secret-not-for-production',
     sign: { expiresIn: '15m' },
   });
 

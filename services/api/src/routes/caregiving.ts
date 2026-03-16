@@ -326,16 +326,27 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
     const caregiverId = request.user.id;
 
     // Find all patients for whom this user is an accepted caregiver
+    // SECURITY: Only include patients where caregiver has viewDoseHistory permission
     const caregiverRelationships = await prisma.caregiverRelationship.findMany({
       where: { caregiverId, status: 'accepted' },
-      select: { patientId: true },
+      select: { patientId: true, permissions: true },
     });
 
     if (caregiverRelationships.length === 0) {
       return reply.status(200).send({ success: true, events: [] });
     }
 
-    const patientIds = caregiverRelationships.map((r: typeof caregiverRelationships[number]) => r.patientId);
+    // Filter to only patients where viewDoseHistory permission is granted
+    const patientIds = caregiverRelationships
+      .filter((r: typeof caregiverRelationships[number]) => {
+        const perms = r.permissions as Record<string, boolean> | null;
+        return perms?.['viewDoseHistory'] === true;
+      })
+      .map((r: typeof caregiverRelationships[number]) => r.patientId);
+
+    if (patientIds.length === 0) {
+      return reply.status(200).send({ success: true, events: [] });
+    }
 
     const events = await prisma.doseEvent.findMany({
       where: { patientId: { in: patientIds } },
