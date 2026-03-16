@@ -104,6 +104,8 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
     // Map the API role to the Prisma enum value
     const prismaRole = role === 'emergency_only' ? 'observer' : role as 'primary' | 'observer';
 
+    const inviteExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
     const relationship = await prisma.caregiverRelationship.create({
       data: {
         patientId,
@@ -112,12 +114,14 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
         status: 'pending',
         permissions: defaultPermissions(role),
         inviteToken,
+        inviteExpiresAt,
       },
       select: {
         id: true,
         role: true,
         status: true,
         inviteToken: true,
+        inviteExpiresAt: true,
         invitedAt: true,
       },
     });
@@ -129,6 +133,7 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
       role: relationship.role,
       status: relationship.status,
       invitedAt: relationship.invitedAt.toISOString(),
+      inviteExpiresAt: relationship.inviteExpiresAt?.toISOString() ?? null,
       // Clients can construct the deep link: safedose://accept?token=<inviteToken>
       inviteLink: `safedose://caregiving/accept?token=${relationship.inviteToken ?? ''}`,
     });
@@ -158,6 +163,7 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
         caregiverId: true,
         status: true,
         role: true,
+        inviteExpiresAt: true,
       },
     });
 
@@ -165,6 +171,16 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
       return reply.status(404).send({
         success: false,
         error: { code: 'INVITE_NOT_FOUND', message: 'Invite token is invalid or has expired.' },
+      });
+    }
+
+    if (relationship.inviteExpiresAt && relationship.inviteExpiresAt < new Date()) {
+      return reply.status(410).send({
+        success: false,
+        error: {
+          code: 'INVITE_EXPIRED',
+          message: 'This invite has expired. Please request a new one.',
+        },
       });
     }
 

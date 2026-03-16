@@ -12,6 +12,7 @@ import type { Medication, MedicationCreate, MedicationUpdate } from '@safedose/s
 import { getDatabase } from './index';
 import { addToSyncQueue } from './sync-queue';
 import { generateId, now } from './utils';
+import { getOrCreateEncryptionKey, encryptPayload } from '../sync/crypto';
 
 // ---------------------------------------------------------------------------
 // Internal row type matching the SQLite column names
@@ -146,6 +147,13 @@ export async function createMedication(
     updatedAt: new Date(ts).toISOString(),
   };
 
+  // Encrypt the payload before writing to the local sync queue.
+  // The sync queue stores ciphertext — plaintext medication data never
+  // persists to SQLite. The same encrypted blob is forwarded to the server
+  // unchanged (server stores only ciphertext in medication_sync.encrypted_payload).
+  const encKey = await getOrCreateEncryptionKey();
+  const encryptedSyncPayload = await encryptPayload(medication, encKey);
+
   try {
     await db.withExclusiveTransactionAsync(async (txn) => {
       await txn.runAsync(
@@ -184,7 +192,7 @@ export async function createMedication(
         localId: id,
         entityType: 'medication',
         operation: 'create',
-        payload: JSON.stringify(medication),
+        payload: encryptedSyncPayload,
       });
     });
 
@@ -219,6 +227,9 @@ export async function updateMedication(
     userId,
     updatedAt: new Date(ts).toISOString(),
   };
+
+  const encKey = await getOrCreateEncryptionKey();
+  const encryptedSyncPayload = await encryptPayload(merged, encKey);
 
   try {
     await db.withExclusiveTransactionAsync(async (txn) => {
@@ -267,7 +278,7 @@ export async function updateMedication(
         localId: id,
         entityType: 'medication',
         operation: 'update',
-        payload: JSON.stringify(merged),
+        payload: encryptedSyncPayload,
       });
     });
 
@@ -291,6 +302,9 @@ export async function deleteMedication(id: string, userId: string): Promise<bool
     return false;
   }
 
+  const encKey = await getOrCreateEncryptionKey();
+  const encryptedSyncPayload = await encryptPayload({ id }, encKey);
+
   try {
     await db.withExclusiveTransactionAsync(async (txn) => {
       await txn.runAsync(
@@ -303,7 +317,7 @@ export async function deleteMedication(id: string, userId: string): Promise<bool
         localId: id,
         entityType: 'medication',
         operation: 'delete',
-        payload: JSON.stringify({ id }),
+        payload: encryptedSyncPayload,
       });
     });
 

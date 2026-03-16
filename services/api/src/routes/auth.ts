@@ -148,7 +148,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         passwordHash,
         emergencyQrToken,
       },
-      select: { id: true, displayName: true, email: true, phone: true },
+      select: { id: true, displayName: true, email: true, phone: true, emergencyQrToken: true },
     });
 
     const tokens = await issueTokenPair(server, user.id, user.email, user.phone);
@@ -160,6 +160,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         displayName: user.displayName,
         email: user.email ?? null,
         phone: user.phone ?? null,
+        emergencyQrToken: user.emergencyQrToken,
       },
       ...tokens,
     });
@@ -192,6 +193,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         email: true,
         phone: true,
         passwordHash: true,
+        emergencyQrToken: true,
       },
     });
 
@@ -226,6 +228,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         displayName: user.displayName,
         email: user.email ?? null,
         phone: user.phone ?? null,
+        emergencyQrToken: user.emergencyQrToken,
       },
       ...tokens,
     });

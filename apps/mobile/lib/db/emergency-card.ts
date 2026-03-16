@@ -11,6 +11,7 @@
 
 import { getDatabase } from './index';
 import { generateId, now } from './utils';
+import { getStoredEmergencyQrToken } from '../auth/index';
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -38,6 +39,13 @@ export interface EmergencyCard {
   id: string;
   userId: string;
   qrToken: string;
+  /**
+   * True when the QR token was generated locally because no server token was
+   * available at card creation time (offline-only users). A server-issued token
+   * will be stable and scannable by first responders; a local-only token is a
+   * fallback and should be replaced as soon as the user authenticates online.
+   */
+  isLocalOnlyToken: boolean;
   displayName: string;
   dateOfBirth: string | null;
   bloodType: BloodType | null;
@@ -111,6 +119,7 @@ function rowToCard(row: EmergencyCardRow): EmergencyCard {
       : [],
     notes: row.notes,
     updatedAt: row.updated_at,
+    isLocalOnlyToken: false, // Rows in DB may have server or local tokens; default to false
   };
 }
 
@@ -186,11 +195,14 @@ export async function upsertEmergencyCard(
     return updated;
   }
 
-  // Create fresh card with a generated QR token.
+  // Create fresh card — prefer server-issued QR token, fall back to local
+  const serverQrToken = await getStoredEmergencyQrToken();
+  const isLocalOnly = serverQrToken === null;
   const card: EmergencyCard = {
     id: generateId(),
     userId,
-    qrToken: generateId(), // Sprint 2: replace with server-issued signed token
+    qrToken: serverQrToken ?? generateId(),
+    isLocalOnlyToken: isLocalOnly,
     displayName: data.displayName ?? '',
     dateOfBirth: data.dateOfBirth ?? null,
     bloodType: data.bloodType ?? null,

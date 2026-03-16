@@ -22,6 +22,7 @@ export interface AuthUser {
   displayName: string;
   email: string | null;
   phone: string | null;
+  emergencyQrToken: string;
 }
 
 interface AuthResponse {
@@ -40,6 +41,7 @@ interface RefreshResponse {
 }
 
 const BIOMETRIC_PREF_KEY = 'auth_biometric_enabled';
+const EMERGENCY_QR_TOKEN_KEY = 'auth_emergency_qr_token';
 
 // ─── Token Storage ────────────────────────────────────────────────────────────
 
@@ -65,7 +67,16 @@ async function clearTokens(): Promise<void> {
   await Promise.all([
     SecureStore.deleteItemAsync(TOKEN_KEYS.access).catch(() => undefined),
     SecureStore.deleteItemAsync(TOKEN_KEYS.refresh).catch(() => undefined),
+    SecureStore.deleteItemAsync(EMERGENCY_QR_TOKEN_KEY).catch(() => undefined),
   ]);
+}
+
+/**
+ * Retrieve the server-issued emergency QR token from SecureStore.
+ * Returns null if the user has not yet authenticated (offline-only state).
+ */
+export async function getStoredEmergencyQrToken(): Promise<string | null> {
+  return SecureStore.getItemAsync(EMERGENCY_QR_TOKEN_KEY).catch(() => null);
 }
 
 // ─── Auth Operations ──────────────────────────────────────────────────────────
@@ -81,7 +92,10 @@ export async function register(
     authenticated: false,
   });
 
-  await storeTokens(data.accessToken, data.refreshToken);
+  await Promise.all([
+    storeTokens(data.accessToken, data.refreshToken),
+    SecureStore.setItemAsync(EMERGENCY_QR_TOKEN_KEY, data.user.emergencyQrToken),
+  ]);
   return data.user;
 }
 
@@ -95,7 +109,10 @@ export async function login(
     authenticated: false,
   });
 
-  await storeTokens(data.accessToken, data.refreshToken);
+  await Promise.all([
+    storeTokens(data.accessToken, data.refreshToken),
+    SecureStore.setItemAsync(EMERGENCY_QR_TOKEN_KEY, data.user.emergencyQrToken),
+  ]);
   return data.user;
 }
 

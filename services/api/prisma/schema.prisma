@@ -91,9 +91,10 @@ model CaregiverRelationship {
   role        CaregiverRole
   status      CaregiverStatus @default(pending)
   permissions Json            @default("{}") // CaregiverPermissions JSON
-  inviteToken String?         @unique @map("invite_token") @db.VarChar(32)
-  invitedAt   DateTime        @default(now()) @map("invited_at")
-  acceptedAt  DateTime?       @map("accepted_at")
+  inviteToken     String?         @unique @map("invite_token") @db.VarChar(32)
+  inviteExpiresAt DateTime?       @map("invite_expires_at")
+  invitedAt       DateTime        @default(now()) @map("invited_at")
+  acceptedAt      DateTime?       @map("accepted_at")
 
   patient   User  @relation("PatientRelationships", fields: [patientId], references: [id], onDelete: Cascade)
   caregiver User? @relation("CaregiverRelationships", fields: [caregiverId], references: [id], onDelete: SetNull)
