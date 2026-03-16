@@ -8,3 +8,4 @@ export * from './schedule.js';
 export * from './emergency.js';
 export * from './sync.js';
 export * from './api.js';
+export * from './doctor.js';

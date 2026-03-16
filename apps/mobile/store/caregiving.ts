@@ -112,6 +112,15 @@ interface CaregivingState {
   /** Revoke a relationship (either party can call this). */
   revokeRelationship: (id: string) => Promise<void>;
 
+  /**
+   * Update permissions for a specific relationship. Saves immediately via API
+   * and refreshes the relationship in local state on success.
+   */
+  updatePermissions: (
+    relationshipId: string,
+    permissions: Record<string, boolean>
+  ) => Promise<void>;
+
   /** Fetch the dose event feed (caregiver view). */
   loadFeed: () => Promise<void>;
 
@@ -194,6 +203,29 @@ export const useCaregivingStore = create<CaregivingState>((set) => ({
       const message =
         err instanceof ApiError ? err.message : 'Failed to revoke relationship';
       set({ isLoading: false, error: message });
+      throw err;
+    }
+  },
+
+  updatePermissions: async (relationshipId, permissions) => {
+    try {
+      await apiClient<{ success: boolean }>(
+        `/caregiving/relationships/${encodeURIComponent(relationshipId)}`,
+        {
+          method: 'PUT',
+          body: { permissions },
+        }
+      );
+      // Refresh the relationship in local state with the new permissions
+      set((state) => ({
+        relationships: state.relationships.map((r) =>
+          r.id === relationshipId ? { ...r, permissions } : r
+        ),
+      }));
+    } catch (err) {
+      const message =
+        err instanceof ApiError ? err.message : 'Failed to update permissions';
+      set({ error: message });
       throw err;
     }
   },

@@ -2,7 +2,7 @@
 
 export type SyncOperation = 'create' | 'update' | 'delete';
 
-export type SyncEntityType = 'medication' | 'schedule' | 'dose_log' | 'symptom';
+export type SyncEntityType = 'medication' | 'schedule' | 'dose_log' | 'symptom' | 'doctor' | 'appointment';
 
 export type SyncStatus = 'pending' | 'syncing' | 'synced' | 'conflict' | 'failed';
 

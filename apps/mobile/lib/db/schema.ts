@@ -261,6 +261,93 @@ const MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 4,
+    description: 'Add doctors and appointments tables; expand sync_queue entity_type constraint',
+    up: async (db) => {
+      // ---- doctors ----
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS doctors (
+          id          TEXT    PRIMARY KEY NOT NULL,
+          user_id     TEXT    NOT NULL,
+          name        TEXT    NOT NULL,
+          specialty   TEXT,
+          phone       TEXT,
+          address     TEXT,
+          npi_number  TEXT,
+          notes       TEXT,
+          created_at  INTEGER NOT NULL,
+          updated_at  INTEGER NOT NULL,
+          deleted_at  INTEGER
+        );
+      `);
+      await db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_doctors_user_id ON doctors (user_id);'
+      );
+
+      // ---- appointments ----
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS appointments (
+          id                    TEXT    PRIMARY KEY NOT NULL,
+          user_id               TEXT    NOT NULL,
+          doctor_id             TEXT    REFERENCES doctors(id),
+          title                 TEXT    NOT NULL,
+          scheduled_at          INTEGER NOT NULL,
+          duration_minutes      INTEGER NOT NULL DEFAULT 30,
+          location              TEXT,
+          notes                 TEXT,
+          pre_visit_checklist   TEXT    NOT NULL DEFAULT '[]',
+          post_visit_notes      TEXT,
+          status                TEXT    NOT NULL DEFAULT 'scheduled'
+                                        CHECK(status IN ('scheduled','completed','cancelled')),
+          created_at            INTEGER NOT NULL,
+          updated_at            INTEGER NOT NULL,
+          deleted_at            INTEGER
+        );
+      `);
+      await db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON appointments (user_id);'
+      );
+      await db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_appointments_scheduled ON appointments (scheduled_at);'
+      );
+
+      // ---- expand sync_queue entity_type CHECK constraint ----
+      // SQLite cannot ALTER a CHECK constraint, so we use rename-create-copy-drop.
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS sync_queue_new (
+          id            TEXT    PRIMARY KEY NOT NULL,
+          local_id      TEXT    NOT NULL,
+          entity_type   TEXT    NOT NULL CHECK(entity_type IN ('medication','schedule','dose_log','symptom','doctor','appointment')),
+          operation     TEXT    NOT NULL CHECK(operation IN ('create','update','delete')),
+          payload       TEXT    NOT NULL,
+          checksum      TEXT    NOT NULL DEFAULT '',
+          status        TEXT    NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','syncing','synced','conflict','failed')),
+          retry_count   INTEGER NOT NULL DEFAULT 0,
+          created_at    INTEGER NOT NULL,
+          updated_at    INTEGER NOT NULL,
+          synced_at     INTEGER,
+          conflict_data TEXT,
+          last_error    TEXT
+        );
+      `);
+      await db.execAsync(`
+        INSERT INTO sync_queue_new
+          SELECT * FROM sync_queue;
+      `);
+      await db.execAsync('DROP TABLE sync_queue;');
+      await db.execAsync('ALTER TABLE sync_queue_new RENAME TO sync_queue;');
+      await db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_sync_queue_status      ON sync_queue (status);'
+      );
+      await db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_sync_queue_entity_type ON sync_queue (entity_type);'
+      );
+      await db.execAsync(
+        'CREATE INDEX IF NOT EXISTS idx_sync_queue_local_id    ON sync_queue (local_id);'
+      );
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
