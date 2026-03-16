@@ -70,6 +70,23 @@ You can always add more later.
 
 **Why camera first:** OCR scanning is the "wow moment" — it's faster, more accurate, and makes the app feel smart. But the manual option must exist for users who are intimidated by camera features or have bottles that scan poorly.
 
+**Camera Permission Pre-Prompt (Screen 3a — shown only if user taps "Scan a pill bottle"):**
+```
+[Camera icon]
+
+SafeDose uses your camera to read pill
+bottle labels — so you don't have to
+type small print.
+
+Your camera is only used during scanning.
+No photos are saved or uploaded.
+
+[Allow Camera Access]
+[I'll type instead →]
+```
+
+**Why a pre-prompt:** iOS presents the system camera permission dialog cold — no context, just "SafeDose Would Like to Access the Camera." For elderly users, this is confusing and scary. The pre-prompt explains why before the system asks. Users who understand the purpose grant permission at significantly higher rates. The "I'll type instead" fallback avoids a hard block if they deny.
+
 **OCR flow:**
 1. User points camera at pill bottle
 2. SafeDose identifies medication name, dosage, and frequency

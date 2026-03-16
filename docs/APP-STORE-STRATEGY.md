@@ -9,8 +9,8 @@
 
 ### App Name & Subtitle
 - **Name:** SafeDose (30 char limit — 8 chars)
-- **Subtitle:** "Medication & Interaction Checker" (33 chars — slightly over. Alternative: "Med Tracker & Interaction Check" at 31 chars — use this if Apple enforces strictly. Preferred: "Medication & Interaction Checker" — test submission.)
-- **Why:** "Medication" is the #1 search term. "Interaction Checker" is the differentiator. Together they describe what SafeDose does.
+- **Subtitle:** "Med Tracker & Drug Checker" (25 chars — comfortably under the 30 char limit)
+- **Why:** "Med Tracker" captures the #1 search intent. "Drug Checker" is the differentiator (interaction checking). Short enough to display fully on all devices.
 
 ### Keywords Field (100 characters, comma-separated)
 ```
