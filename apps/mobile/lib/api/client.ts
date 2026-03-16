@@ -1,6 +1,8 @@
+import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE_URL = process.env['EXPO_PUBLIC_API_URL'] ?? 'http://localhost:3001';
+const API_BASE_URL =
+  (Constants.expoConfig?.extra?.['apiUrl'] as string | undefined) ?? 'http://localhost:3001';
 
 interface RequestOptions {
   method?: string;
