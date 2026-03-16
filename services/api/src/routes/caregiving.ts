@@ -23,7 +23,7 @@ import { verifyJwt } from '../middleware/auth.js';
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 
-const inviteSchema = z.object({
+export const inviteSchema = z.object({
   email: z.string().email('Invalid email address').optional(),
   phone: z.string().min(10, 'Phone must be at least 10 digits').optional(),
   role: z.enum(['primary', 'observer', 'emergency_only'], {
@@ -34,17 +34,17 @@ const inviteSchema = z.object({
   { message: 'Either email or phone is required', path: ['email'] }
 );
 
-const acceptSchema = z.object({
+export const acceptSchema = z.object({
   inviteToken: z.string().length(32, 'inviteToken must be 32 characters'),
 });
 
-const relationshipParamsSchema = z.object({
+export const relationshipParamsSchema = z.object({
   id: z.string().uuid('id must be a valid UUID'),
 });
 
 // ─── Default permissions by role ──────────────────────────────────────────────
 
-function defaultPermissions(role: string): Record<string, boolean> {
+export function defaultPermissions(role: string): Record<string, boolean> {
   if (role === 'primary') {
     return {
       viewMedications: true,
