@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import fastifyJwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
 import { authRoutes } from './routes/auth.js';
 import { medicationRoutes } from './routes/medications.js';
@@ -17,6 +18,11 @@ const server = Fastify({
 async function start(): Promise<void> {
   await server.register(cors, {
     origin: process.env['CORS_ORIGIN'] ?? true,
+  });
+
+  await server.register(fastifyJwt, {
+    secret: process.env['JWT_SECRET'] ?? 'dev-secret-change-in-prod',
+    sign: { expiresIn: '15m' },
   });
 
   await server.register(rateLimit, {

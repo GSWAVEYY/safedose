@@ -4,6 +4,11 @@ import * as SecureStore from 'expo-secure-store';
 const API_BASE_URL =
   (Constants.expoConfig?.extra?.['apiUrl'] as string | undefined) ?? 'http://localhost:3001';
 
+export const TOKEN_KEYS = {
+  access: 'auth_access_token',
+  refresh: 'auth_refresh_token',
+} as const;
+
 interface RequestOptions {
   method?: string;
   body?: unknown;
@@ -11,11 +16,22 @@ interface RequestOptions {
   authenticated?: boolean;
 }
 
-async function getAuthToken(): Promise<string | null> {
+async function getAccessToken(): Promise<string | null> {
   try {
-    return await SecureStore.getItemAsync('auth_token');
+    return await SecureStore.getItemAsync(TOKEN_KEYS.access);
   } catch {
     return null;
+  }
+}
+
+export class ApiError extends Error {
+  constructor(
+    public readonly statusCode: number,
+    public readonly code: string,
+    message: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
   }
 }
 
@@ -31,7 +47,7 @@ export async function apiClient<T>(
   };
 
   if (authenticated) {
-    const token = await getAuthToken();
+    const token = await getAccessToken();
     if (token) {
       requestHeaders['Authorization'] = `Bearer ${token}`;
     }
@@ -44,8 +60,13 @@ export async function apiClient<T>(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error((error as { message?: string }).message ?? `HTTP ${response.status}`);
+    const errorBody = await response.json().catch(() => ({
+      error: { code: 'UNKNOWN_ERROR', message: 'Request failed' },
+    })) as { error?: { code?: string; message?: string } };
+
+    const code = errorBody.error?.code ?? 'UNKNOWN_ERROR';
+    const message = errorBody.error?.message ?? `HTTP ${response.status}`;
+    throw new ApiError(response.status, code, message);
   }
 
   return response.json() as Promise<T>;

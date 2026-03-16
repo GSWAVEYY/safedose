@@ -103,19 +103,20 @@ const CREATE_DOSE_LOG_INDEXES = `
 
 const CREATE_EMERGENCY_CARD = `
   CREATE TABLE IF NOT EXISTS emergency_card (
-    id                      TEXT    PRIMARY KEY NOT NULL,
-    user_id                 TEXT    NOT NULL UNIQUE,
-    qr_token                TEXT    NOT NULL,
-    display_name            TEXT    NOT NULL,
-    date_of_birth           TEXT,
-    blood_type              TEXT,
-    allergies               TEXT    NOT NULL DEFAULT '[]', -- JSON array
-    medications             TEXT    NOT NULL DEFAULT '[]', -- JSON array
-    emergency_contact_name  TEXT,
-    emergency_contact_phone TEXT,
-    primary_physician       TEXT,
-    notes                   TEXT,
-    updated_at              INTEGER NOT NULL
+    id                       TEXT    PRIMARY KEY NOT NULL,
+    user_id                  TEXT    NOT NULL UNIQUE,
+    qr_token                 TEXT    NOT NULL,
+    display_name             TEXT    NOT NULL,
+    date_of_birth            TEXT,
+    blood_type               TEXT,
+    allergies                TEXT    NOT NULL DEFAULT '[]',  -- JSON array of strings
+    medications              TEXT    NOT NULL DEFAULT '[]',  -- JSON array of medication IDs
+    emergency_contacts       TEXT    NOT NULL DEFAULT '[]',  -- JSON array of EmergencyContact objects
+    primary_physician_name   TEXT,
+    primary_physician_phone  TEXT,
+    medical_conditions       TEXT    NOT NULL DEFAULT '[]',  -- JSON array of strings
+    notes                    TEXT,
+    updated_at               INTEGER NOT NULL
   );
 `;
 
@@ -190,6 +191,45 @@ const MIGRATIONS: Migration[] = [
       await db.execAsync(CREATE_SYMPTOMS_INDEXES);
       await db.execAsync(CREATE_SYNC_QUEUE);
       await db.execAsync(CREATE_SYNC_QUEUE_INDEXES);
+    },
+  },
+  {
+    version: 2,
+    description: 'emergency_card — add emergency_contacts (JSON), primary_physician split, medical_conditions',
+    up: async (db) => {
+      // SQLite ALTER TABLE only supports ADD COLUMN — one at a time.
+      await db.execAsync(
+        `ALTER TABLE emergency_card ADD COLUMN emergency_contacts TEXT NOT NULL DEFAULT '[]';`
+      );
+      await db.execAsync(
+        `ALTER TABLE emergency_card ADD COLUMN primary_physician_name TEXT;`
+      );
+      await db.execAsync(
+        `ALTER TABLE emergency_card ADD COLUMN primary_physician_phone TEXT;`
+      );
+      await db.execAsync(
+        `ALTER TABLE emergency_card ADD COLUMN medical_conditions TEXT NOT NULL DEFAULT '[]';`
+      );
+      // Migrate legacy single-contact columns into the new JSON array column.
+      await db.execAsync(`
+        UPDATE emergency_card
+        SET emergency_contacts = json_array(
+              json_object(
+                'id',           hex(randomblob(8)),
+                'name',         COALESCE(emergency_contact_name, ''),
+                'phone',        COALESCE(emergency_contact_phone, ''),
+                'relationship', 'other'
+              )
+            )
+        WHERE emergency_contact_name IS NOT NULL
+          AND emergency_contact_name != '';
+      `);
+      // Migrate legacy combined primary_physician into split columns.
+      await db.execAsync(`
+        UPDATE emergency_card
+        SET primary_physician_name = primary_physician
+        WHERE primary_physician IS NOT NULL;
+      `);
     },
   },
 ];
