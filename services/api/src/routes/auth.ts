@@ -27,7 +27,7 @@ import { verifyJwt } from '../middleware/auth.js';
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 
-const registerSchema = z.object({
+export const registerSchema = z.object({
   email: z.string().email('Invalid email address').optional(),
   phone: z
     .string()
@@ -43,7 +43,7 @@ const registerSchema = z.object({
   path: ['email'],
 });
 
-const loginSchema = z.object({
+export const loginSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().min(10).optional(),
   password: z.string().min(1, 'Password is required'),
@@ -52,13 +52,18 @@ const loginSchema = z.object({
   path: ['email'],
 });
 
-const refreshSchema = z.object({
+export const refreshSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 });
 
-const logoutSchema = z.object({
+export const logoutSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 });
+
+// ─── Rate limit config (exported for testing) ─────────────────────────────────
+
+export const REGISTER_RATE_LIMIT = { max: 10, timeWindow: '1 minute' } as const;
+export const LOGIN_RATE_LIMIT = { max: 5, timeWindow: '1 minute' } as const;
 
 // ─── Response helpers ─────────────────────────────────────────────────────────
 
@@ -103,7 +108,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
   // ── POST /auth/register ───────────────────────────────────────────────────
 
   server.post('/register', {
-    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+    config: { rateLimit: REGISTER_RATE_LIMIT },
   }, async (request, reply) => {
     const result = registerSchema.safeParse(request.body);
     if (!result.success) {
@@ -169,7 +174,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
   // ── POST /auth/login ──────────────────────────────────────────────────────
 
   server.post('/login', {
-    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+    config: { rateLimit: LOGIN_RATE_LIMIT },
   }, async (request, reply) => {
     const result = loginSchema.safeParse(request.body);
     if (!result.success) {
