@@ -86,19 +86,20 @@ model RefreshToken {
 model CaregiverRelationship {
   id          String          @id @default(uuid()) @db.Uuid
   patientId   String          @map("patient_id") @db.Uuid
-  caregiverId String          @map("caregiver_id") @db.Uuid
+  caregiverId String?         @map("caregiver_id") @db.Uuid
   role        CaregiverRole
   status      CaregiverStatus @default(pending)
   permissions Json            @default("{}") // CaregiverPermissions JSON
+  inviteToken String?         @unique @map("invite_token") @db.VarChar(32)
   invitedAt   DateTime        @default(now()) @map("invited_at")
   acceptedAt  DateTime?       @map("accepted_at")
 
-  patient   User @relation("PatientRelationships", fields: [patientId], references: [id], onDelete: Cascade)
-  caregiver User @relation("CaregiverRelationships", fields: [caregiverId], references: [id], onDelete: Cascade)
+  patient   User  @relation("PatientRelationships", fields: [patientId], references: [id], onDelete: Cascade)
+  caregiver User? @relation("CaregiverRelationships", fields: [caregiverId], references: [id], onDelete: SetNull)
 
-  @@unique([patientId, caregiverId])
   @@index([patientId])
   @@index([caregiverId])
+  @@index([inviteToken])
   @@map("caregiver_relationships")
 }
 
