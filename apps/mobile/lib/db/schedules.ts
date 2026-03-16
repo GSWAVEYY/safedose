@@ -6,6 +6,7 @@ import type { Schedule } from '@safedose/shared-types';
 
 import { getDatabase } from './index';
 import { generateId, now } from './utils';
+import { addToSyncQueue } from './sync-queue';
 
 // ---------------------------------------------------------------------------
 // Internal row type
@@ -106,28 +107,37 @@ export async function createSchedule(data: CreateScheduleInput): Promise<Schedul
   const ts = now();
 
   try {
-    await db.runAsync(
-      `INSERT INTO schedules (
-        id, medication_id, user_id, times,
-        frequency_value, frequency_unit,
-        start_date, end_date, with_food, notes,
-        is_active, created_at, updated_at
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?)`,
-      [
-        id,
-        data.medicationId,
-        data.userId,
-        JSON.stringify(data.times),
-        data.frequencyValue,
-        data.frequencyUnit,
-        data.startDate,
-        data.endDate ?? null,
-        data.withFood ? 1 : 0,
-        data.notes ?? null,
-        ts,
-        ts,
-      ]
-    );
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `INSERT INTO schedules (
+          id, medication_id, user_id, times,
+          frequency_value, frequency_unit,
+          start_date, end_date, with_food, notes,
+          is_active, created_at, updated_at
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,1,?,?)`,
+        [
+          id,
+          data.medicationId,
+          data.userId,
+          JSON.stringify(data.times),
+          data.frequencyValue,
+          data.frequencyUnit,
+          data.startDate,
+          data.endDate ?? null,
+          data.withFood ? 1 : 0,
+          data.notes ?? null,
+          ts,
+          ts,
+        ]
+      );
+
+      await addToSyncQueue(txn, {
+        localId: id,
+        entityType: 'schedule',
+        operation: 'create',
+        payload: JSON.stringify(data),
+      });
+    });
 
     const created = await getScheduleById(id);
     if (created === null) {
@@ -157,29 +167,38 @@ export async function updateSchedule(
   const merged = { ...existing, ...updates };
 
   try {
-    await db.runAsync(
-      `UPDATE schedules SET
-        times           = ?,
-        frequency_value = ?,
-        frequency_unit  = ?,
-        start_date      = ?,
-        end_date        = ?,
-        with_food       = ?,
-        notes           = ?,
-        updated_at      = ?
-       WHERE id = ?`,
-      [
-        JSON.stringify(merged.times),
-        merged.frequencyValue,
-        merged.frequencyUnit,
-        merged.startDate,
-        merged.endDate ?? null,
-        merged.withFood ? 1 : 0,
-        merged.notes ?? null,
-        ts,
-        id,
-      ]
-    );
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE schedules SET
+          times           = ?,
+          frequency_value = ?,
+          frequency_unit  = ?,
+          start_date      = ?,
+          end_date        = ?,
+          with_food       = ?,
+          notes           = ?,
+          updated_at      = ?
+         WHERE id = ?`,
+        [
+          JSON.stringify(merged.times),
+          merged.frequencyValue,
+          merged.frequencyUnit,
+          merged.startDate,
+          merged.endDate ?? null,
+          merged.withFood ? 1 : 0,
+          merged.notes ?? null,
+          ts,
+          id,
+        ]
+      );
+
+      await addToSyncQueue(txn, {
+        localId: id,
+        entityType: 'schedule',
+        operation: 'update',
+        payload: JSON.stringify(merged),
+      });
+    });
 
     return await getScheduleById(id);
   } catch (error) {
@@ -195,8 +214,20 @@ export async function updateSchedule(
 export async function deleteSchedule(id: string): Promise<boolean> {
   const db = getDatabase();
   try {
-    const result = await db.runAsync('DELETE FROM schedules WHERE id = ?', [id]);
-    return (result.changes ?? 0) > 0;
+    let deleted = false;
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      const result = await txn.runAsync('DELETE FROM schedules WHERE id = ?', [id]);
+      deleted = (result.changes ?? 0) > 0;
+      if (deleted) {
+        await addToSyncQueue(txn, {
+          localId: id,
+          entityType: 'schedule',
+          operation: 'delete',
+          payload: JSON.stringify({ id }),
+        });
+      }
+    });
+    return deleted;
   } catch (error) {
     console.error('[schedules] deleteSchedule failed:', error);
     throw error;

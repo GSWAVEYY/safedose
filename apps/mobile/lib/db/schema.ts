@@ -210,26 +210,10 @@ const MIGRATIONS: Migration[] = [
       await db.execAsync(
         `ALTER TABLE emergency_card ADD COLUMN medical_conditions TEXT NOT NULL DEFAULT '[]';`
       );
-      // Migrate legacy single-contact columns into the new JSON array column.
-      await db.execAsync(`
-        UPDATE emergency_card
-        SET emergency_contacts = json_array(
-              json_object(
-                'id',           hex(randomblob(8)),
-                'name',         COALESCE(emergency_contact_name, ''),
-                'phone',        COALESCE(emergency_contact_phone, ''),
-                'relationship', 'other'
-              )
-            )
-        WHERE emergency_contact_name IS NOT NULL
-          AND emergency_contact_name != '';
-      `);
-      // Migrate legacy combined primary_physician into split columns.
-      await db.execAsync(`
-        UPDATE emergency_card
-        SET primary_physician_name = primary_physician
-        WHERE primary_physician IS NOT NULL;
-      `);
+      // No legacy single-contact data to migrate; v1 schema never contained
+      // emergency_contact_name, emergency_contact_phone, or primary_physician columns.
+      // These UPDATE statements were removed after Shield audit identified them as
+      // referencing non-existent columns, which caused a crash loop.
     },
   },
 ];

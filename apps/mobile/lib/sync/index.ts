@@ -190,7 +190,10 @@ export function stopSync(): void {
     clearInterval(_intervalHandle);
     _intervalHandle = null;
   }
-  setStatus('synced');
+  // Don't claim synced if we stopped mid-flight or with items pending
+  if (_status !== 'pending' && _status !== 'syncing') {
+    setStatus('synced');
+  }
 }
 
 /**

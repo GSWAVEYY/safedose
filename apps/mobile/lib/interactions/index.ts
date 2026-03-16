@@ -54,6 +54,8 @@ export interface UseInteractionCheckReturn {
   isChecking: boolean;
   /** Result of the most recent check, or null before the first check. */
   lastResult: InteractionCheckResult | null;
+  /** Error from the most recent failed check, or null. */
+  error: Error | null;
 }
 
 /**
@@ -70,14 +72,20 @@ export interface UseInteractionCheckReturn {
 export function useInteractionCheck(): UseInteractionCheckReturn {
   const [isChecking, setIsChecking] = useState(false);
   const [lastResult, setLastResult] = useState<InteractionCheckResult | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   const checkInteractions = useCallback(
     async (rxcuis: string[]): Promise<InteractionCheckResult> => {
       setIsChecking(true);
+      setError(null);
       try {
         const result = await _checkInteractions(rxcuis);
         setLastResult(result);
         return result;
+      } catch (err) {
+        const e = err instanceof Error ? err : new Error(String(err));
+        setError(e);
+        throw e;
       } finally {
         setIsChecking(false);
       }
@@ -91,10 +99,15 @@ export function useInteractionCheck(): UseInteractionCheckReturn {
       existingRxcuis: string[],
     ): Promise<InteractionCheckResult> => {
       setIsChecking(true);
+      setError(null);
       try {
         const result = await _checkNewMed(newRxcui, existingRxcuis);
         setLastResult(result);
         return result;
+      } catch (err) {
+        const e = err instanceof Error ? err : new Error(String(err));
+        setError(e);
+        throw e;
       } finally {
         setIsChecking(false);
       }
@@ -102,5 +115,5 @@ export function useInteractionCheck(): UseInteractionCheckReturn {
     [],
   );
 
-  return { checkInteractions, checkNewMed, isChecking, lastResult };
+  return { checkInteractions, checkNewMed, isChecking, lastResult, error };
 }
