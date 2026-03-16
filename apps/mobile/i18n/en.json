@@ -95,7 +95,9 @@
     "interactionsFound": "Interactions found",
     "noInteractionsFound": "No interactions found with your current medications.",
     "dosageUnit": "Unit",
-    "dosageAmount": "Amount"
+    "dosageAmount": "Amount",
+    "asNeeded": "As needed",
+    "withFood": "Take with food"
   },
   "interactions": {
     "contraindicated": "Contraindicated",
