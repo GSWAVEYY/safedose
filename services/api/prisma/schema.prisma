@@ -49,10 +49,14 @@ model User {
   displayName      String   @map("display_name")
   passwordHash     String   @map("password_hash") @db.VarChar(72)
   locale           String   @default("en") @db.VarChar(8)
-  emergencyQrToken String   @unique @map("emergency_qr_token") @db.VarChar(32)
-  deletedAt        DateTime? @map("deleted_at")
-  createdAt        DateTime @default(now()) @map("created_at")
-  lastSeen         DateTime @default(now()) @map("last_seen")
+  emergencyQrToken     String   @unique @map("emergency_qr_token") @db.VarChar(32)
+  stripeCustomerId     String?  @unique @map("stripe_customer_id")
+  subscriptionTier     String   @default("free") @map("subscription_tier") // free, premium, family
+  subscriptionStatus   String?  @map("subscription_status") // active, past_due, canceled, trialing
+  stripeSubscriptionId String?  @map("stripe_subscription_id")
+  deletedAt            DateTime? @map("deleted_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+  lastSeen             DateTime @default(now()) @map("last_seen")
 
   // Relations
   caregiverRelationshipsAsPatient   CaregiverRelationship[] @relation("PatientRelationships")

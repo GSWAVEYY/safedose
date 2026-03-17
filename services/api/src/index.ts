@@ -3,11 +3,13 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
+import type { FastifyRequest } from 'fastify';
 import { authRoutes } from './routes/auth.js';
 import { medicationRoutes } from './routes/medications.js';
 import { caregivingRoutes } from './routes/caregiving.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { emergencyRoutes } from './routes/emergency.js';
+import { subscriptionRoutes } from './routes/subscriptions.js';
 
 const server = Fastify({
   logger: {
@@ -43,12 +45,33 @@ async function start(): Promise<void> {
   // Health check
   server.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
+  // Raw body parser for Stripe webhook signature verification.
+  // Stripe's signature is computed over the exact bytes of the request body.
+  // We intercept application/json on the webhook path only, storing the raw
+  // Buffer on the request object before forwarding to the standard JSON parser.
+  server.addContentTypeParser(
+    'application/json',
+    { parseAs: 'buffer' },
+    (req: FastifyRequest, body: Buffer, done: (err: Error | null, payload?: unknown) => void) => {
+      // Attach rawBody for Stripe webhook routes
+      (req as FastifyRequest & { rawBody?: Buffer }).rawBody = body;
+      try {
+        done(null, JSON.parse(body.toString('utf8')));
+      } catch (err: unknown) {
+        const parseErr = err instanceof Error ? err : new Error(String(err));
+        parseErr.message = `Invalid JSON: ${parseErr.message}`;
+        done(parseErr);
+      }
+    }
+  );
+
   // Register route modules
   await server.register(authRoutes, { prefix: '/auth' });
   await server.register(medicationRoutes, { prefix: '/medications' });
   await server.register(caregivingRoutes, { prefix: '/caregiving' });
   await server.register(notificationRoutes, { prefix: '/notifications' });
   await server.register(emergencyRoutes, { prefix: '/emergency' });
+  await server.register(subscriptionRoutes, { prefix: '/subscriptions' });
 
   const port = Number(process.env['PORT'] ?? 3001);
   const host = process.env['HOST'] ?? '0.0.0.0';

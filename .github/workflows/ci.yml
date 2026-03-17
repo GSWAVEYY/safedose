@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build shared-types
+        run: pnpm --filter @safedose/shared-types run build
+
+      - name: Typecheck shared-types
+        run: pnpm --filter @safedose/shared-types run typecheck
+
+      - name: Typecheck shared-utils
+        run: pnpm --filter @safedose/shared-utils run typecheck
+
+      - name: Typecheck drug-db-builder
+        run: pnpm --filter @safedose/drug-db-builder run typecheck
+
+      - name: Typecheck API
+        run: pnpm --filter @safedose/api run typecheck
+
+      - name: Typecheck Mobile
+        run: pnpm --filter @safedose/mobile run typecheck
+
+      - name: Test API
+        run: pnpm --filter @safedose/api run test
+
+      - name: Test Mobile
+        run: pnpm --filter @safedose/mobile run test
+
+      - name: Prettier check
+        run: pnpm prettier --check "**/*.{ts,tsx,json}" --ignore-path .gitignore

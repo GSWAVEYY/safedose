@@ -1,0 +1,56 @@
+# SafeDose API — Fly.io Configuration
+# Deploy with: fly deploy --remote-only (from services/api/)
+# First-time setup: fly launch --no-deploy (to import this config)
+#
+# Secrets must be set before first deploy:
+#   fly secrets set DATABASE_URL="postgresql://..."
+#   fly secrets set JWT_SECRET="$(openssl rand -base64 32)"
+#   fly secrets set CORS_ORIGIN="https://safedose.app"
+#   fly secrets set STRIPE_SECRET_KEY="sk_live_..."
+#   fly secrets set STRIPE_WEBHOOK_SECRET="whsec_..."
+#   fly secrets set ENCRYPTION_KEY="<64-char hex>"
+
+app = "safedose-api"
+primary_region = "iad"  # US East — closest to Neon's default region
+
+[build]
+  # Dockerfile is at monorepo root (services/api/Dockerfile resolves from root)
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT     = "3001"
+  HOST     = "0.0.0.0"
+  LOG_LEVEL = "info"
+  # All secrets (DATABASE_URL, JWT_SECRET, CORS_ORIGIN, STRIPE_*, ENCRYPTION_KEY)
+  # must be set via `fly secrets set` — never hardcode here.
+
+[http_service]
+  internal_port       = 3001
+  force_https         = true
+  auto_stop_machines  = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval     = "30s"
+    method       = "GET"
+    path         = "/health"
+    timeout      = "5s"
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval     = "30s"
+    method       = "GET"
+    path         = "/health"
+    port         = 3001
+    timeout      = "5s"
+    type         = "http"
+
+# Machine sizing — shared-cpu-1x is sufficient for a Fastify API at early scale.
+# Upgrade to performance-1x when p99 latency exceeds 200ms under load.
+[[vm]]
+  size   = "shared-cpu-1x"
+  memory = "256mb"

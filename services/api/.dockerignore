@@ -1,0 +1,52 @@
+# SafeDose API — Docker ignore list
+# Applied when building the Docker image from the monorepo root.
+# These paths are relative to the build context (monorepo root).
+
+# Build artifacts — will be regenerated inside the container
+dist/
+services/api/dist/
+packages/*/dist/
+
+# Dependency directories — installed fresh inside the container
+node_modules/
+services/api/node_modules/
+packages/*/node_modules/
+
+# Test files — not needed in production image
+**/*.test.ts
+**/*.spec.ts
+**/__tests__/
+**/test/
+**/tests/
+**/*.test.js
+**/*.spec.js
+
+# Environment files — secrets must NEVER be baked into the image
+.env
+.env.*
+*.env
+
+# Development tooling
+.eslintrc*
+eslint.config.*
+.prettierrc*
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor and OS artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Git — no need for version history in the image
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
