@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/db.js';
 import { generateSecureToken } from '../lib/crypto.js';
 import { verifyJwt } from '../middleware/auth.js';
+import { checkCaregiverLimit, TierLimitError } from '../middleware/feature-gate.js';
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 
@@ -98,6 +99,28 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
     }
 
     const patientId = request.user.id;
+
+    // Enforce free-tier caregiver limit before creating a new invite.
+    // Counts both pending and accepted relationships — a pending invite
+    // occupies the slot because it may be accepted at any time.
+    try {
+      await checkCaregiverLimit(patientId);
+    } catch (err: unknown) {
+      if (err instanceof TierLimitError) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: err.code,
+            message: err.message,
+            requiredTier: err.requiredTier,
+            currentTier: err.currentTier,
+            limitReached: err.limitReached,
+          },
+        });
+      }
+      throw err;
+    }
+
     const { role } = result.data;
     const inviteToken = generateSecureToken(16); // 32-char hex, fits VarChar(32)
 

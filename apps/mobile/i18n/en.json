@@ -306,6 +306,105 @@
     "saveSuccess": "Doctor saved.",
     "saveFailed": "Failed to save doctor. Please try again."
   },
+  "settings": {
+    "sectionAccount": "Account",
+    "sectionApp": "App",
+    "sectionAbout": "About",
+    "subscription": "Subscription",
+    "subscriptionDescription": "Manage your plan and billing",
+    "language": "Language",
+    "languageDescription": "Change app language",
+    "notifications": "Notifications",
+    "notificationsDescription": "Manage dose reminders and alerts",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
+  },
+  "subscription": {
+    "paywallTitle": "Unlock SafeDose Premium",
+    "paywallSubtitle": "Manage medications confidently — for you and your family.",
+    "managementTitle": "My Subscription",
+    "currentPlan": "Current Plan",
+    "mostPopular": "Most Popular",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "perMonth": "/mo",
+    "perYear": "/yr",
+    "annualSavings": "Save {{percent}}%",
+    "startTrial": "Start 7-Day Free Trial",
+    "alreadyOnPlan": "Your Current Plan",
+    "upgrade": "Upgrade",
+    "upgradeToUnlock": "Upgrade to unlock",
+    "upgradeHint": "Opens the subscription upgrade screen",
+    "viewPlans": "View Plans",
+    "changePlan": "Change Plan",
+    "changePlanDescription": "Upgrade or switch between Premium and Family",
+    "manageSubscription": "Manage Subscription",
+    "manageSubscriptionDescription": "Update payment method, view invoices",
+    "restorePurchase": "Restore Purchase",
+    "billedMonthly": "Billed {{price}}/month after trial",
+    "billedAnnually": "Billed {{price}}/year after trial",
+    "upgradePromptTitle": "Unlock more with Premium",
+    "upgradePromptBody": "Get unlimited medications, caregivers, full history, and cloud sync.",
+    "billingActions": "Billing",
+    "cancelInfo": "To cancel your subscription, tap Manage Subscription above. Cancellations take effect at the end of your current billing period.",
+    "refreshing": "Refreshing...",
+    "checkoutErrorTitle": "Checkout Unavailable",
+    "checkoutErrorMessage": "We couldn't open the checkout page. Please try again.",
+    "restoreSuccessTitle": "Purchase Restored",
+    "restoreSuccessMessage": "Your subscription status has been refreshed.",
+    "restoreErrorTitle": "Restore Failed",
+    "restoreErrorMessage": "We couldn't restore your purchase. Please contact support.",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "tiers": {
+      "free": {
+        "name": "Free",
+        "price": "Free forever",
+        "description": "Core medication tracking for individual use."
+      },
+      "premium": {
+        "name": "Premium",
+        "description": "Unlimited medications, caregivers, and full history."
+      },
+      "family": {
+        "name": "Family",
+        "description": "Everything in Premium plus multi-recipient care and doctor management."
+      }
+    },
+    "status": {
+      "active": "Active",
+      "trialing": "Trial",
+      "pastDue": "Past Due",
+      "canceled": "Canceled"
+    },
+    "trust": {
+      "cancelAnytime": "Cancel anytime",
+      "noHiddenFees": "No hidden fees",
+      "trialFree": "7-day free trial",
+      "privacyFirst": "Your data stays private"
+    },
+    "features": {
+      "medications10": "Up to 10 medications",
+      "unlimitedMedications": "Unlimited medications",
+      "oneCaregiver": "1 caregiver link",
+      "unlimitedCaregivers": "Unlimited caregiver links",
+      "history7Days": "7-day dose history",
+      "fullHistory": "Full dose history",
+      "enEsOnly": "English & Spanish",
+      "allLanguages": "All languages",
+      "symptomTracking": "Symptom tracking",
+      "cloudSync": "Cloud backup & sync",
+      "careRecipients5": "Up to 5 care recipients",
+      "doctorManagement": "Doctor & appointment management",
+      "pdfExport": "PDF export"
+    },
+    "banner": {
+      "default": "Unlock unlimited medications and caregiver links with Premium.",
+      "medications": "You have 10 medications — upgrade for unlimited.",
+      "caregiving": "Add unlimited caregivers with Premium or Family.",
+      "dismiss": "Dismiss upgrade banner"
+    }
+  },
   "appointments": {
     "title": "Appointments",
     "upcoming": "Upcoming",

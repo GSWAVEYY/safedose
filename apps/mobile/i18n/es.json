@@ -230,6 +230,105 @@
       }
     }
   },
+  "settings": {
+    "sectionAccount": "Cuenta",
+    "sectionApp": "Aplicación",
+    "sectionAbout": "Acerca de",
+    "subscription": "Suscripción",
+    "subscriptionDescription": "Gestiona tu plan y facturación",
+    "language": "Idioma",
+    "languageDescription": "Cambiar el idioma de la app",
+    "notifications": "Notificaciones",
+    "notificationsDescription": "Gestionar recordatorios de dosis y alertas",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos de Servicio"
+  },
+  "subscription": {
+    "paywallTitle": "Desbloquea SafeDose Premium",
+    "paywallSubtitle": "Gestiona tus medicamentos con confianza — para ti y tu familia.",
+    "managementTitle": "Mi Suscripción",
+    "currentPlan": "Plan Actual",
+    "mostPopular": "Más Popular",
+    "monthly": "Mensual",
+    "annual": "Anual",
+    "perMonth": "/mes",
+    "perYear": "/año",
+    "annualSavings": "Ahorra {{percent}}%",
+    "startTrial": "Comenzar Prueba Gratis de 7 Días",
+    "alreadyOnPlan": "Tu Plan Actual",
+    "upgrade": "Actualizar",
+    "upgradeToUnlock": "Actualizar para desbloquear",
+    "upgradeHint": "Abre la pantalla de actualización de suscripción",
+    "viewPlans": "Ver Planes",
+    "changePlan": "Cambiar Plan",
+    "changePlanDescription": "Actualizar o cambiar entre Premium y Familiar",
+    "manageSubscription": "Gestionar Suscripción",
+    "manageSubscriptionDescription": "Actualizar método de pago, ver facturas",
+    "restorePurchase": "Restaurar Compra",
+    "billedMonthly": "Facturado {{price}}/mes tras la prueba",
+    "billedAnnually": "Facturado {{price}}/año tras la prueba",
+    "upgradePromptTitle": "Desbloquea más con Premium",
+    "upgradePromptBody": "Obtén medicamentos ilimitados, cuidadores, historial completo y sincronización en la nube.",
+    "billingActions": "Facturación",
+    "cancelInfo": "Para cancelar tu suscripción, toca Gestionar Suscripción arriba. La cancelación se aplica al final de tu período de facturación actual.",
+    "refreshing": "Actualizando...",
+    "checkoutErrorTitle": "Pago no disponible",
+    "checkoutErrorMessage": "No pudimos abrir la página de pago. Por favor, inténtalo de nuevo.",
+    "restoreSuccessTitle": "Compra Restaurada",
+    "restoreSuccessMessage": "El estado de tu suscripción ha sido actualizado.",
+    "restoreErrorTitle": "Error al Restaurar",
+    "restoreErrorMessage": "No pudimos restaurar tu compra. Por favor, contacta con soporte.",
+    "termsOfService": "Términos de Servicio",
+    "privacyPolicy": "Política de Privacidad",
+    "tiers": {
+      "free": {
+        "name": "Gratis",
+        "price": "Gratis para siempre",
+        "description": "Seguimiento básico de medicamentos para uso individual."
+      },
+      "premium": {
+        "name": "Premium",
+        "description": "Medicamentos, cuidadores e historial ilimitados."
+      },
+      "family": {
+        "name": "Familiar",
+        "description": "Todo en Premium más cuidado de múltiples personas y gestión médica."
+      }
+    },
+    "status": {
+      "active": "Activo",
+      "trialing": "Prueba",
+      "pastDue": "Pago Pendiente",
+      "canceled": "Cancelado"
+    },
+    "trust": {
+      "cancelAnytime": "Cancela en cualquier momento",
+      "noHiddenFees": "Sin cargos ocultos",
+      "trialFree": "Prueba gratis de 7 días",
+      "privacyFirst": "Tus datos son privados"
+    },
+    "features": {
+      "medications10": "Hasta 10 medicamentos",
+      "unlimitedMedications": "Medicamentos ilimitados",
+      "oneCaregiver": "1 enlace de cuidador",
+      "unlimitedCaregivers": "Cuidadores ilimitados",
+      "history7Days": "Historial de dosis de 7 días",
+      "fullHistory": "Historial completo de dosis",
+      "enEsOnly": "Inglés y Español",
+      "allLanguages": "Todos los idiomas",
+      "symptomTracking": "Seguimiento de síntomas",
+      "cloudSync": "Copia de seguridad y sincronización en la nube",
+      "careRecipients5": "Hasta 5 personas a cargo",
+      "doctorManagement": "Gestión de médicos y citas",
+      "pdfExport": "Exportar PDF"
+    },
+    "banner": {
+      "default": "Desbloquea medicamentos y cuidadores ilimitados con Premium.",
+      "medications": "Tienes 10 medicamentos — actualiza para obtener ilimitados.",
+      "caregiving": "Agrega cuidadores ilimitados con Premium o Familiar.",
+      "dismiss": "Cerrar mensaje de actualización"
+    }
+  },
   "emergency": {
     "header": "INFORMACIÓN DE EMERGENCIA",
     "headerSubtext": "Muestre esta tarjeta a los socorristas",

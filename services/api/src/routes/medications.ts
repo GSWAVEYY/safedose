@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/db.js';
 import { sha256 } from '../lib/crypto.js';
 import { verifyJwt } from '../middleware/auth.js';
+import { checkMedicationLimit, TierLimitError } from '../middleware/feature-gate.js';
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 
@@ -86,6 +87,26 @@ export async function medicationRoutes(server: FastifyInstance): Promise<void> {
 
     const userId = request.user.id;
     const { localId, encryptedPayload, checksum } = result.data;
+
+    // Enforce free-tier medication limit before creating a net-new record.
+    // Updates to existing sync records (same userId + localId) are always allowed.
+    try {
+      await checkMedicationLimit(userId, localId);
+    } catch (err: unknown) {
+      if (err instanceof TierLimitError) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: err.code,
+            message: err.message,
+            requiredTier: err.requiredTier,
+            currentTier: err.currentTier,
+            limitReached: err.limitReached,
+          },
+        });
+      }
+      throw err;
+    }
 
     // Verify the checksum the client sent matches the payload.
     // Server never inspects the plaintext — but it can verify integrity

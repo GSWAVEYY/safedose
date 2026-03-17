@@ -10,6 +10,7 @@ import { caregivingRoutes } from './routes/caregiving.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { emergencyRoutes } from './routes/emergency.js';
 import { subscriptionRoutes } from './routes/subscriptions.js';
+import { userRoutes } from './routes/users.js';
 
 const server = Fastify({
   logger: {
@@ -72,6 +73,7 @@ async function start(): Promise<void> {
   await server.register(notificationRoutes, { prefix: '/notifications' });
   await server.register(emergencyRoutes, { prefix: '/emergency' });
   await server.register(subscriptionRoutes, { prefix: '/subscriptions' });
+  await server.register(userRoutes, { prefix: '/users' });
 
   const port = Number(process.env['PORT'] ?? 3001);
   const host = process.env['HOST'] ?? '0.0.0.0';
