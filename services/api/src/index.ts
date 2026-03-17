@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
 import type { FastifyRequest } from 'fastify';
+import { initSentry, captureException } from './lib/sentry.js';
 import { authRoutes } from './routes/auth.js';
 import { medicationRoutes } from './routes/medications.js';
 import { caregivingRoutes } from './routes/caregiving.js';
@@ -11,6 +12,24 @@ import { notificationRoutes } from './routes/notifications.js';
 import { emergencyRoutes } from './routes/emergency.js';
 import { subscriptionRoutes } from './routes/subscriptions.js';
 import { userRoutes } from './routes/users.js';
+
+// Initialise Sentry as early as possible — before any async work — so that
+// errors during startup are captured. Safe when SENTRY_DSN is not set.
+initSentry();
+
+// Capture uncaught exceptions and unhandled rejections that escape Fastify's
+// error handler. Sentry receives these before process.exit is called.
+process.on('uncaughtException', (err) => {
+  captureException(err, { source: 'uncaughtException' });
+  console.error('[fatal] uncaughtException:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  captureException(reason, { source: 'unhandledRejection' });
+  console.error('[fatal] unhandledRejection:', reason);
+  process.exit(1);
+});
 
 const server = Fastify({
   logger: {

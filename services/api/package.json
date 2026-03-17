@@ -24,6 +24,7 @@
     "@prisma/client": "^5.13.0",
     "@safedose/shared-types": "workspace:*",
     "@safedose/shared-utils": "workspace:*",
+    "@sentry/node": "^10.43.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.5",
     "expo-server-sdk": "^3.10.0",

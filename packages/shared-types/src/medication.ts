@@ -42,6 +42,10 @@ export interface Medication {
   endedAt?: string; // ISO 8601 — null means active
   isActive: boolean;
   imageUri?: string; // local path on device
+  // Refill tracking fields (optional — only set when user has entered refill info)
+  refillDate?: string; // ISO 8601 — date when refill is needed
+  daysSupply?: number; // number of days the current supply covers
+  pillCount?: number; // remaining pill/unit count
   createdAt: string;
   updatedAt: string;
 }

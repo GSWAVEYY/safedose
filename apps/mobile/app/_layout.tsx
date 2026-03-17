@@ -9,6 +9,11 @@ import { View, ActivityIndicator } from 'react-native';
 // i18n must be imported for side-effects (initializes before any screen renders)
 import '../lib/i18n';
 import { useUserStore } from '../store/user';
+import { initMobileSentry, wrap as sentryWrap } from '../lib/sentry';
+
+// Initialise Sentry before any navigation renders.
+// Safe when EXPO_PUBLIC_SENTRY_DSN is not set — Sentry no-ops without a DSN.
+initMobileSentry();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,7 +48,7 @@ function AuthGate() {
   return null; // authenticated — let the Stack render normally
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
@@ -53,3 +58,8 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+
+// Wrap with Sentry to enable automatic error boundary reporting and
+// navigation instrumentation. sentryWrap is Sentry.wrap which is a no-op
+// when Sentry is not initialised (no DSN set).
+export default sentryWrap(RootLayout);

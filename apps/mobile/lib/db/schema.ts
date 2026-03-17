@@ -348,6 +348,31 @@ const MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 5,
+    description: 'medications — add refill_date, days_supply, pill_count columns for refill tracking',
+    up: async (db) => {
+      // SQLite ALTER TABLE supports ADD COLUMN only — one column at a time.
+      // All three columns are nullable so adding them to existing rows is safe.
+      //   refill_date — Unix ms timestamp of when the current supply runs out
+      //   days_supply — how many days the current fill covers
+      //   pill_count  — remaining unit count (REAL to support half-pills etc.)
+      await db.execAsync(
+        `ALTER TABLE medications ADD COLUMN refill_date INTEGER;`
+      );
+      await db.execAsync(
+        `ALTER TABLE medications ADD COLUMN days_supply INTEGER;`
+      );
+      await db.execAsync(
+        `ALTER TABLE medications ADD COLUMN pill_count REAL;`
+      );
+      // Index on refill_date enables the "needs refill within N days" query
+      // to avoid a full-table scan.
+      await db.execAsync(
+        `CREATE INDEX IF NOT EXISTS idx_medications_refill_date ON medications (refill_date);`
+      );
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------
