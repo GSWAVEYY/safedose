@@ -373,6 +373,40 @@ const MIGRATIONS: Migration[] = [
       );
     },
   },
+  {
+    version: 6,
+    description: 'Add wellness_checkins table for caregiver burnout prevention (PHQ-2 + wellness signals)',
+    up: async (db) => {
+      // wellness_checkins stores periodic caregiver self-assessments.
+      // PHQ-2 is a validated 2-question depression screener (scores 0-3 each, total 0-6).
+      // Score >= 3 warrants referral to full PHQ-9 screening.
+      // Score >= 5 triggers crisis resource display.
+      //
+      // IMPORTANT: Mental health data is intentionally excluded from the sync
+      // queue — it stays on device only and is never sent to the server.
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS wellness_checkins (
+          id                    TEXT    PRIMARY KEY NOT NULL,
+          user_id               TEXT    NOT NULL,
+          phq2_q1               INTEGER NOT NULL CHECK(phq2_q1 BETWEEN 0 AND 3),
+          phq2_q2               INTEGER NOT NULL CHECK(phq2_q2 BETWEEN 0 AND 3),
+          phq2_score            INTEGER NOT NULL CHECK(phq2_score BETWEEN 0 AND 6),
+          sleep_quality         INTEGER CHECK(sleep_quality BETWEEN 1 AND 5),
+          stress_level          INTEGER CHECK(stress_level BETWEEN 1 AND 5),
+          had_respite_this_week INTEGER NOT NULL DEFAULT 0,
+          notes                 TEXT,
+          checked_in_at         INTEGER NOT NULL,
+          created_at            INTEGER NOT NULL
+        );
+      `);
+      await db.execAsync(
+        `CREATE INDEX IF NOT EXISTS idx_wellness_user ON wellness_checkins (user_id);`
+      );
+      await db.execAsync(
+        `CREATE INDEX IF NOT EXISTS idx_wellness_date ON wellness_checkins (checked_in_at);`
+      );
+    },
+  },
 ];
 
 // ---------------------------------------------------------------------------

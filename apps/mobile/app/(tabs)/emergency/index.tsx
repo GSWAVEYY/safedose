@@ -34,6 +34,7 @@ import {
   type EmergencyContact,
 } from '../../../lib/db/emergency-card';
 import { EmergencyContactForm } from '../../../components/emergency/EmergencyContactForm';
+import { ExportButton } from '../../../components/export/ExportButton';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -613,17 +614,13 @@ export default function EmergencyScreen() {
 
   function renderExportButton() {
     return (
-      <Pressable
-        onPress={() => Alert.alert(t('emergency.exportComingSoon'))}
-        accessibilityRole="button"
-        accessibilityLabel={t('emergency.exportPDF')}
-        style={{ minHeight: 56 }}
-        className="mx-1 mb-6 bg-slate-800 rounded-2xl items-center justify-center active:bg-slate-900"
-      >
-        <Text className="text-white font-semibold text-lg">
-          {t('emergency.exportPDF')}
-        </Text>
-      </Pressable>
+      <View className="mx-1 mb-6">
+        <ExportButton
+          type="emergencyCard"
+          userId={PLACEHOLDER_USER_ID}
+          label={t('emergency.exportPDF')}
+        />
+      </View>
     );
   }
 

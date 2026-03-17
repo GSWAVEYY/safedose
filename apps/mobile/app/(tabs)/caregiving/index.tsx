@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useCaregivingStore, type DoseFeedEvent } from '../../../store/caregiving';
 import { RelationshipCard } from '../../../components/caregiving/RelationshipCard';
 import { InviteSheet } from '../../../components/caregiving/InviteSheet';
+import { BurnoutRiskCard } from '../../../components/caregiving/BurnoutRiskCard';
 import { Button } from '../../../components/ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -285,13 +286,17 @@ export default function CaregivingScreen() {
                   subtext={t('caregiving.noPatientsSubtext')}
                 />
               ) : (
-                asCaregiver.map((rel) => (
-                  <RelationshipCard
-                    key={rel.id}
-                    relationship={rel}
-                    canEditPermissions={false}
-                  />
-                ))
+                <>
+                  {/* Burnout prevention card — only visible when actively caregiving */}
+                  <BurnoutRiskCard />
+                  {asCaregiver.map((rel) => (
+                    <RelationshipCard
+                      key={rel.id}
+                      relationship={rel}
+                      canEditPermissions={false}
+                    />
+                  ))}
+                </>
               )}
             </>
           )}
