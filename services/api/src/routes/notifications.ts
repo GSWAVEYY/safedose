@@ -153,13 +153,11 @@ export async function notificationRoutes(server: FastifyInstance): Promise<void>
     '/test',
     { preHandler: [verifyJwt] },
     async (request, reply) => {
-      if (process.env['NODE_ENV'] === 'production') {
+      const enableTestPush = process.env['NODE_ENV'] !== 'production' && process.env['ENABLE_TEST_PUSH'] === 'true';
+      if (!enableTestPush) {
         return reply.status(403).send({
           success: false,
-          error: {
-            code: 'FORBIDDEN',
-            message: 'Test notifications are not available in production.',
-          },
+          error: { code: 'FORBIDDEN', message: 'Test endpoint disabled.' },
         });
       }
 

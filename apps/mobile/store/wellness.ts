@@ -17,12 +17,15 @@ import {
   getBurnoutRiskScore as dbGetBurnoutRiskScore,
   getLastCheckinDate as dbGetLastCheckinDate,
 } from '../lib/db/wellness';
+import { useUserStore } from './user';
 
 // ---------------------------------------------------------------------------
-// Placeholder user ID — replaced when auth is wired up
+// Auth user ID helper — reads from Zustand state outside of React components
 // ---------------------------------------------------------------------------
 
-const PLACEHOLDER_USER_ID = 'local-user';
+function getUserId(): string {
+  return useUserStore.getState().userId ?? 'local-user';
+}
 
 // ---------------------------------------------------------------------------
 // State shape
@@ -77,11 +80,11 @@ export const useWellnessStore = create<WellnessState>((set) => ({
   logCheckin: async (data: WellnessCheckinInput) => {
     set({ isLoading: true, error: null });
     try {
-      const checkin = await dbLogCheckin(PLACEHOLDER_USER_ID, data);
+      const checkin = await dbLogCheckin(getUserId(), data);
       // Refresh burnout score and last check-in date after write
       const [risk, lastDate] = await Promise.all([
-        dbGetBurnoutRiskScore(PLACEHOLDER_USER_ID),
-        dbGetLastCheckinDate(PLACEHOLDER_USER_ID),
+        dbGetBurnoutRiskScore(getUserId()),
+        dbGetLastCheckinDate(getUserId()),
       ]);
       set((state) => ({
         recentCheckins: [checkin, ...state.recentCheckins],
@@ -101,8 +104,8 @@ export const useWellnessStore = create<WellnessState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const [risk, lastDate] = await Promise.all([
-        dbGetBurnoutRiskScore(PLACEHOLDER_USER_ID),
-        dbGetLastCheckinDate(PLACEHOLDER_USER_ID),
+        dbGetBurnoutRiskScore(getUserId()),
+        dbGetLastCheckinDate(getUserId()),
       ]);
       set({ burnoutRisk: risk, lastCheckinAt: lastDate, isLoading: false });
     } catch (err) {
@@ -114,7 +117,7 @@ export const useWellnessStore = create<WellnessState>((set) => ({
   loadRecentCheckins: async (weeks = 8) => {
     set({ isLoading: true, error: null });
     try {
-      const checkins = await dbGetRecentCheckins(PLACEHOLDER_USER_ID, weeks);
+      const checkins = await dbGetRecentCheckins(getUserId(), weeks);
       set({ recentCheckins: checkins, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load check-in history';

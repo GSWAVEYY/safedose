@@ -22,7 +22,6 @@ export interface AuthUser {
   displayName: string;
   email: string | null;
   phone: string | null;
-  emergencyQrToken: string;
 }
 
 interface AuthResponse {
@@ -72,11 +71,20 @@ async function clearTokens(): Promise<void> {
 }
 
 /**
- * Retrieve the server-issued emergency QR token from SecureStore.
- * Returns null if the user has not yet authenticated (offline-only state).
+ * Fetch the emergency QR token from the server.
+ * The token is no longer cached in SecureStore — it is fetched on demand
+ * so that the emergency QR screen always reflects the current server value.
+ * Returns null if the request fails or the user is not authenticated.
  */
 export async function getStoredEmergencyQrToken(): Promise<string | null> {
-  return SecureStore.getItemAsync(EMERGENCY_QR_TOKEN_KEY).catch(() => null);
+  try {
+    const data = await apiClient<{ success: boolean; emergencyQrToken: string }>(
+      '/users/me/emergency-token'
+    );
+    return data.emergencyQrToken ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // ─── Auth Operations ──────────────────────────────────────────────────────────
@@ -92,10 +100,7 @@ export async function register(
     authenticated: false,
   });
 
-  await Promise.all([
-    storeTokens(data.accessToken, data.refreshToken),
-    SecureStore.setItemAsync(EMERGENCY_QR_TOKEN_KEY, data.user.emergencyQrToken),
-  ]);
+  await storeTokens(data.accessToken, data.refreshToken);
   return data.user;
 }
 
@@ -109,10 +114,7 @@ export async function login(
     authenticated: false,
   });
 
-  await Promise.all([
-    storeTokens(data.accessToken, data.refreshToken),
-    SecureStore.setItemAsync(EMERGENCY_QR_TOKEN_KEY, data.user.emergencyQrToken),
-  ]);
+  await storeTokens(data.accessToken, data.refreshToken);
   return data.user;
 }
 

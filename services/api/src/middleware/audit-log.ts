@@ -6,8 +6,6 @@ import { prisma } from '../lib/db.js';
  *
  * Usage: add as an `onSend` or `preHandler` hook on sensitive routes.
  * Or call writeAuditLog() directly from route handlers for explicit control.
- *
- * PLACEHOLDER — Sprint 2 will wire this up to all auth + caregiver endpoints.
  */
 
 export interface AuditEvent {

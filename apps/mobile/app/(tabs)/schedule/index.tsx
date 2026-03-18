@@ -26,6 +26,7 @@ import { DoseConfirmSheet } from '../../../components/schedule/DoseConfirmSheet'
 import { initNotifications, rescheduleAllReminders } from '../../../lib/notifications/index';
 import { getSchedulesForMedication } from '../../../lib/db/schedules';
 import type { DoseConfirmResult } from '../../../components/schedule/DoseConfirmSheet';
+import type { Schedule } from '@safedose/shared-types';
 
 // ---------------------------------------------------------------------------
 // Date header helpers
@@ -162,7 +163,7 @@ export default function ScheduleScreen() {
       // so any schedule changes from the Medications screen are reflected.
       if (notifPermGranted && medications.length > 0) {
         void (async () => {
-          const allSchedules: import('@safedose/shared-types').Schedule[] = [];
+          const allSchedules: Schedule[] = [];
           const medMap = new Map<string, { id: string }>();
 
           for (const med of medications) {

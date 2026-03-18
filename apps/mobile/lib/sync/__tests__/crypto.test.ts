@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Crypto module tests — apps/mobile/lib/sync/crypto.ts
  *
@@ -21,6 +22,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type * as ExpoSecureStore from 'expo-secure-store';
 
 // ─── SecureStore mock ─────────────────────────────────────────────────────────
 // Must be defined before importing the module under test. vi.mock hoisting
@@ -97,7 +99,7 @@ describe('getOrCreateEncryptionKey', () => {
 
   it('does not call setItemAsync on the second call (key reuse)', async () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const SecureStore = await (import('expo-secure-store') as Promise<typeof import('expo-secure-store')>);
+    const SecureStore = await (import('expo-secure-store') as Promise<typeof ExpoSecureStore>);
     const spy = vi.spyOn(SecureStore, 'setItemAsync');
 
     await getOrCreateEncryptionKey(); // first call — generates and stores

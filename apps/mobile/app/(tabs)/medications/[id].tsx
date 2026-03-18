@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useMedicationsStore } from '@/store/medications';
+import { useUserStore } from '@/store/user';
 import { getSchedulesForMedication } from '@/lib/db/schedules';
 import { getAdherenceRate } from '@/lib/db/dose-log';
 import type { Schedule } from '@safedose/shared-types';
@@ -37,8 +38,6 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { InteractionAlert } from '@/components/medications/InteractionAlert';
 import { ExportButton } from '@/components/export/ExportButton';
-
-const PLACEHOLDER_USER_ID = 'local-user';
 
 // ---------------------------------------------------------------------------
 // Status badge helper (mirrors MedCard logic)
@@ -107,6 +106,7 @@ export default function MedicationDetailScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const navigation = useNavigation();
+  const { userId } = useUserStore();
 
   const {
     medications,
@@ -430,7 +430,7 @@ export default function MedicationDetailScreen() {
         {/* Export history — feature-gated to Family tier */}
         <ExportButton
           type="doseHistory"
-          userId={PLACEHOLDER_USER_ID}
+          userId={userId ?? 'local-user'}
           days={30}
           label="Export History as PDF"
         />

@@ -17,11 +17,14 @@ import {
   cancelAppointment as dbCancelAppointment,
   completeAppointment as dbCompleteAppointment,
 } from '../lib/db/appointments';
+import { useUserStore } from './user';
 
 // ---------------------------------------------------------------------------
-// Placeholder user ID — replaced when auth is implemented in Sprint 2
+// Auth user ID helper — reads from Zustand state outside of React components
 // ---------------------------------------------------------------------------
-const PLACEHOLDER_USER_ID = 'local-user';
+function getUserId(): string {
+  return useUserStore.getState().userId ?? 'local-user';
+}
 
 // ---------------------------------------------------------------------------
 // State shape
@@ -71,7 +74,7 @@ export const useAppointmentsStore = create<AppointmentsState>((set) => ({
   loadUpcoming: async () => {
     set({ isLoading: true, error: null });
     try {
-      const upcoming = await getUpcomingAppointments(PLACEHOLDER_USER_ID);
+      const upcoming = await getUpcomingAppointments(getUserId());
       set({ upcoming, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load appointments';
@@ -82,7 +85,7 @@ export const useAppointmentsStore = create<AppointmentsState>((set) => ({
   loadPast: async (limit: number = 50) => {
     set({ isLoading: true, error: null });
     try {
-      const past = await getPastAppointments(PLACEHOLDER_USER_ID, limit);
+      const past = await getPastAppointments(getUserId(), limit);
       set({ past, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load past appointments';
@@ -93,7 +96,7 @@ export const useAppointmentsStore = create<AppointmentsState>((set) => ({
   saveAppointment: async (data: AppointmentCreate) => {
     set({ isLoading: true, error: null });
     try {
-      const appointment = await dbCreateAppointment(PLACEHOLDER_USER_ID, data);
+      const appointment = await dbCreateAppointment(getUserId(), data);
       set((state) => ({
         upcoming: [...state.upcoming, appointment].sort(
           (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
@@ -111,7 +114,7 @@ export const useAppointmentsStore = create<AppointmentsState>((set) => ({
   editAppointment: async (id: string, updates: Partial<AppointmentUpdate>) => {
     set({ isLoading: true, error: null });
     try {
-      const updated = await dbUpdateAppointment(id, PLACEHOLDER_USER_ID, updates);
+      const updated = await dbUpdateAppointment(id, getUserId(), updates);
       if (updated) {
         // Update whichever list contains this appointment.
         set((state) => ({
@@ -143,7 +146,7 @@ export const useAppointmentsStore = create<AppointmentsState>((set) => ({
   cancelAppointment: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const updated = await dbCancelAppointment(id, PLACEHOLDER_USER_ID);
+      const updated = await dbCancelAppointment(id, getUserId());
       if (updated) {
         // Move from upcoming to past.
         set((state) => ({
@@ -165,7 +168,7 @@ export const useAppointmentsStore = create<AppointmentsState>((set) => ({
   completeAppointment: async (id: string, postVisitNotes?: string) => {
     set({ isLoading: true, error: null });
     try {
-      const updated = await dbCompleteAppointment(id, PLACEHOLDER_USER_ID, postVisitNotes);
+      const updated = await dbCompleteAppointment(id, getUserId(), postVisitNotes);
       if (updated) {
         // Move from upcoming to past.
         set((state) => ({

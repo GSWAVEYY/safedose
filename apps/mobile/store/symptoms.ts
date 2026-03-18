@@ -14,11 +14,14 @@ import {
   getSymptomFrequency as dbGetSymptomFrequency,
   deleteSymptom as dbDeleteSymptom,
 } from '../lib/db/symptoms';
+import { useUserStore } from './user';
 
 // ---------------------------------------------------------------------------
-// Placeholder user ID — replaced when auth is wired up in Sprint 2
+// Auth user ID helper — reads from Zustand state outside of React components
 // ---------------------------------------------------------------------------
-const PLACEHOLDER_USER_ID = 'local-user';
+function getUserId(): string {
+  return useUserStore.getState().userId ?? 'local-user';
+}
 
 // ---------------------------------------------------------------------------
 // State shape
@@ -77,7 +80,7 @@ export const useSymptomsStore = create<SymptomsState>((set, _get) => ({
   logSymptom: async (data: SymptomInput) => {
     set({ isLoading: true, error: null });
     try {
-      const symptom = await dbLogSymptom(PLACEHOLDER_USER_ID, data);
+      const symptom = await dbLogSymptom(getUserId(), data);
       set((state) => ({
         // Prepend so newest appears first
         symptoms: [symptom, ...state.symptoms],
@@ -94,7 +97,7 @@ export const useSymptomsStore = create<SymptomsState>((set, _get) => ({
   loadSymptomHistory: async (days: number) => {
     set({ isLoading: true, error: null });
     try {
-      const symptoms = await dbGetSymptomHistory(PLACEHOLDER_USER_ID, days);
+      const symptoms = await dbGetSymptomHistory(getUserId(), days);
       set({ symptoms, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load symptom history';
@@ -104,7 +107,7 @@ export const useSymptomsStore = create<SymptomsState>((set, _get) => ({
 
   getFrequencyReport: async (days: number) => {
     try {
-      const report = await dbGetSymptomFrequency(PLACEHOLDER_USER_ID, days);
+      const report = await dbGetSymptomFrequency(getUserId(), days);
       set({ frequencyReport: report });
       return report;
     } catch (err) {
@@ -116,7 +119,7 @@ export const useSymptomsStore = create<SymptomsState>((set, _get) => ({
   removeSymptom: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const success = await dbDeleteSymptom(id, PLACEHOLDER_USER_ID);
+      const success = await dbDeleteSymptom(id, getUserId());
       if (success) {
         set((state) => ({
           symptoms: state.symptoms.filter((s) => s.id !== id),

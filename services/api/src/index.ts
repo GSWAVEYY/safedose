@@ -47,13 +47,13 @@ async function start(): Promise<void> {
     origin: corsOrigin ?? false,
   });
 
-  // SECURITY: JWT secret must be set — no weak fallback
+  // SECURITY: JWT secret is required in all environments — no weak fallback
   const jwtSecret = process.env['JWT_SECRET'];
-  if (!jwtSecret && process.env['NODE_ENV'] === 'production') {
-    throw new Error('FATAL: JWT_SECRET environment variable must be set in production');
+  if (!jwtSecret) {
+    throw new Error('FATAL: JWT_SECRET environment variable is required');
   }
   await server.register(fastifyJwt, {
-    secret: jwtSecret ?? 'dev-only-secret-not-for-production',
+    secret: jwtSecret,
     sign: { expiresIn: '15m' },
   });
 

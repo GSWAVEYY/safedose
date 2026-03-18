@@ -42,6 +42,7 @@ export async function initDatabase(): Promise<SQLiteDatabase> {
   await runMigrations(db);
 
   _db = db;
+  // eslint-disable-next-line no-console
   console.log('[DB] Initialised:', DB_NAME);
 
   return db;

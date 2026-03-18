@@ -1,12 +1,8 @@
 /**
  * Cryptographic utilities for SafeDose API.
  *
- * PLACEHOLDER — Sentinel will review and harden this module.
- *
- * Planned:
- * - AES-256-GCM encryption/decryption for medication sync payloads
- * - SHA-256 checksum generation
- * - Secure token generation
+ * Provides SHA-256 checksum generation and secure token generation.
+ * Encryption/decryption of medication sync payloads is handled client-side.
  */
 
 import { createHash, randomBytes } from 'crypto';
@@ -26,7 +22,3 @@ export function sha256(payload: string): string {
 export function generateSecureToken(byteLength: number = 16): string {
   return randomBytes(byteLength).toString('hex');
 }
-
-// TODO: implement AES-256-GCM encrypt/decrypt for medication sync payloads
-// encrypt(plaintext: string, key: Buffer): string
-// decrypt(ciphertext: string, key: Buffer): string

@@ -26,6 +26,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useMedicationsStore } from '../../../store/medications';
+import { useUserStore } from '../../../store/user';
 import {
   getEmergencyCard,
   upsertEmergencyCard,
@@ -39,8 +40,6 @@ import { ExportButton } from '../../../components/export/ExportButton';
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-const PLACEHOLDER_USER_ID = 'local-user';
 
 const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown'];
 
@@ -224,6 +223,7 @@ function BloodTypePicker({ value, onChange, isEditing }: BloodTypePickerProps) {
 
 export default function EmergencyScreen() {
   const { t } = useTranslation();
+  const { userId } = useUserStore();
   const medications = useMedicationsStore((s) => s.medications);
   const loadMedications = useMedicationsStore((s) => s.loadMedications);
 
@@ -249,7 +249,7 @@ export default function EmergencyScreen() {
     async function loadData() {
       try {
         await loadMedications();
-        const existing = await getEmergencyCard(PLACEHOLDER_USER_ID);
+        const existing = await getEmergencyCard(userId ?? 'local-user');
         if (existing) {
           setCard(existing);
           syncDraftFromCard(existing);
@@ -289,7 +289,7 @@ export default function EmergencyScreen() {
   async function handleSave() {
     setIsSaving(true);
     try {
-      const updated = await upsertEmergencyCard(PLACEHOLDER_USER_ID, {
+      const updated = await upsertEmergencyCard(userId ?? 'local-user', {
         displayName: draft.displayName,
         bloodType: draft.bloodType,
         allergies: draft.allergies,
@@ -617,7 +617,7 @@ export default function EmergencyScreen() {
       <View className="mx-1 mb-6">
         <ExportButton
           type="emergencyCard"
-          userId={PLACEHOLDER_USER_ID}
+          userId={userId ?? 'local-user'}
           label={t('emergency.exportPDF')}
         />
       </View>

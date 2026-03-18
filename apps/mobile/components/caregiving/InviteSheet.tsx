@@ -20,7 +20,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-// Clipboard: using react-native-clipboard when available, inline fallback for now
+import * as Clipboard from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { useCaregivingStore, type InviteResult } from '../../store/caregiving';
@@ -128,8 +128,7 @@ function SuccessView({ result, onClose }: SuccessViewProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
-    // TODO: Add expo-clipboard when available. For now, user can long-press to copy.
-    void result.inviteLink;
+    await Clipboard.setStringAsync(result.inviteLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [result.inviteLink]);

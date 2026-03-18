@@ -16,11 +16,14 @@ import {
   updateDoctor as dbUpdateDoctor,
   deleteDoctor as dbDeleteDoctor,
 } from '../lib/db/doctors';
+import { useUserStore } from './user';
 
 // ---------------------------------------------------------------------------
-// Placeholder user ID — replaced when auth is implemented in Sprint 2
+// Auth user ID helper — reads from Zustand state outside of React components
 // ---------------------------------------------------------------------------
-const PLACEHOLDER_USER_ID = 'local-user';
+function getUserId(): string {
+  return useUserStore.getState().userId ?? 'local-user';
+}
 
 // ---------------------------------------------------------------------------
 // State shape
@@ -67,7 +70,7 @@ export const useDoctorsStore = create<DoctorsState>((set, _get) => ({
   loadDoctors: async () => {
     set({ isLoading: true, error: null });
     try {
-      const doctors = await getAllDoctors(PLACEHOLDER_USER_ID);
+      const doctors = await getAllDoctors(getUserId());
       set({ doctors, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load doctors';
@@ -77,7 +80,7 @@ export const useDoctorsStore = create<DoctorsState>((set, _get) => ({
 
   refreshDoctor: async (id: string) => {
     try {
-      const doctor = await getDoctorById(id, PLACEHOLDER_USER_ID);
+      const doctor = await getDoctorById(id, getUserId());
       if (doctor) {
         set((state) => ({
           doctors: state.doctors.map((d) => (d.id === id ? doctor : d)),
@@ -91,7 +94,7 @@ export const useDoctorsStore = create<DoctorsState>((set, _get) => ({
   saveDoctor: async (data: DoctorCreate) => {
     set({ isLoading: true, error: null });
     try {
-      const doctor = await dbCreateDoctor(PLACEHOLDER_USER_ID, data);
+      const doctor = await dbCreateDoctor(getUserId(), data);
       set((state) => ({
         doctors: [...state.doctors, doctor].sort((a, b) => a.name.localeCompare(b.name)),
         isLoading: false,
@@ -107,7 +110,7 @@ export const useDoctorsStore = create<DoctorsState>((set, _get) => ({
   editDoctor: async (id: string, updates: Partial<DoctorUpdate>) => {
     set({ isLoading: true, error: null });
     try {
-      const updated = await dbUpdateDoctor(id, PLACEHOLDER_USER_ID, updates);
+      const updated = await dbUpdateDoctor(id, getUserId(), updates);
       if (updated) {
         set((state) => ({
           doctors: state.doctors
@@ -129,7 +132,7 @@ export const useDoctorsStore = create<DoctorsState>((set, _get) => ({
   removeDoctor: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const success = await dbDeleteDoctor(id, PLACEHOLDER_USER_ID);
+      const success = await dbDeleteDoctor(id, getUserId());
       if (success) {
         set((state) => ({
           doctors: state.doctors.filter((d) => d.id !== id),

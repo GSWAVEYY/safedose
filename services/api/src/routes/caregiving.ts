@@ -21,6 +21,7 @@ import { prisma } from '../lib/db.js';
 import { generateSecureToken } from '../lib/crypto.js';
 import { verifyJwt } from '../middleware/auth.js';
 import { checkCaregiverLimit, TierLimitError } from '../middleware/feature-gate.js';
+import { writeAuditLog } from '../middleware/audit-log.js';
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 
@@ -41,6 +42,15 @@ export const acceptSchema = z.object({
 
 export const relationshipParamsSchema = z.object({
   id: z.string().uuid('id must be a valid UUID'),
+});
+
+export const updatePermissionsSchema = z.object({
+  permissions: z.object({
+    viewMedications: z.boolean(),
+    editMedications: z.boolean(),
+    viewSchedule: z.boolean(),
+    receiveAlerts: z.boolean(),
+  }),
 });
 
 // ─── Default permissions by role ──────────────────────────────────────────────
@@ -149,6 +159,8 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
       },
     });
 
+    void writeAuditLog({ userId: patientId, action: 'CAREGIVER_INVITE_SENT', entityType: 'relationship', entityId: relationship.id, request });
+
     return reply.status(201).send({
       success: true,
       id: relationship.id,
@@ -166,7 +178,7 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
   // Authenticated user (the prospective caregiver) accepts an invite by token.
   // The user must be authenticated so we can link their account as caregiverId.
 
-  server.post('/accept', { preHandler: [verifyJwt] }, async (request, reply) => {
+  server.post('/accept', { preHandler: [verifyJwt], config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (request, reply) => {
     const result = acceptSchema.safeParse(request.body);
     if (!result.success) {
       return reply.status(400).send({
@@ -244,6 +256,8 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
       },
     });
 
+    void writeAuditLog({ userId: request.user.id, action: 'CAREGIVER_INVITE_ACCEPTED', entityType: 'relationship', entityId: updated.id, request });
+
     return reply.status(200).send({
       success: true,
       id: updated.id,
@@ -312,6 +326,86 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
     });
   });
 
+  // ── PUT /caregiving/relationships/:id ─────────────────────────────────────
+  // Update permissions for an accepted relationship.
+  // Only the patient (relationship owner) may update permissions.
+
+  server.put('/relationships/:id', { preHandler: [verifyJwt] }, async (request, reply) => {
+    const paramsResult = relationshipParamsSchema.safeParse(request.params);
+    if (!paramsResult.success) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', issues: paramsResult.error.issues },
+      });
+    }
+
+    const bodyResult = updatePermissionsSchema.safeParse(request.body);
+    if (!bodyResult.success) {
+      return reply.status(400).send({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', issues: bodyResult.error.issues },
+      });
+    }
+
+    const userId = request.user.id;
+    const { id } = paramsResult.data;
+    const { permissions } = bodyResult.data;
+
+    const relationship = await prisma.caregiverRelationship.findUnique({
+      where: { id },
+      select: { id: true, patientId: true, status: true },
+    });
+
+    if (!relationship) {
+      return reply.status(404).send({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Relationship not found.' },
+      });
+    }
+
+    // Only the patient may update permissions
+    if (relationship.patientId !== userId) {
+      return reply.status(403).send({
+        success: false,
+        error: { code: 'FORBIDDEN', message: 'Only the patient can update caregiver permissions.' },
+      });
+    }
+
+    // Permissions can only be updated on accepted relationships
+    if (relationship.status !== 'accepted') {
+      return reply.status(409).send({
+        success: false,
+        error: {
+          code: 'INVALID_STATUS',
+          message: 'Permissions can only be updated on accepted relationships.',
+        },
+      });
+    }
+
+    const updated = await prisma.caregiverRelationship.update({
+      where: { id },
+      data: { permissions },
+      select: {
+        id: true,
+        patientId: true,
+        caregiverId: true,
+        role: true,
+        status: true,
+        permissions: true,
+      },
+    });
+
+    return reply.status(200).send({
+      success: true,
+      id: updated.id,
+      patientId: updated.patientId,
+      caregiverId: updated.caregiverId,
+      role: updated.role,
+      status: updated.status,
+      permissions: updated.permissions,
+    });
+  });
+
   // ── DELETE /caregiving/relationships/:id ──────────────────────────────────
   // Revoke a relationship. Either the patient or the caregiver may revoke.
 
@@ -354,6 +448,8 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
       data: { status: 'revoked', inviteToken: null },
     });
 
+    void writeAuditLog({ userId: request.user.id, action: 'CAREGIVER_REVOKED', entityType: 'relationship', entityId: id as string, request });
+
     return reply.status(200).send({ success: true });
   });
 
@@ -370,6 +466,8 @@ export async function caregivingRoutes(server: FastifyInstance): Promise<void> {
       where: { caregiverId, status: 'accepted' },
       select: { patientId: true, permissions: true },
     });
+
+    void writeAuditLog({ userId: caregiverId, action: 'CAREGIVER_FEED_ACCESS', request });
 
     if (caregiverRelationships.length === 0) {
       return reply.status(200).send({ success: true, events: [] });

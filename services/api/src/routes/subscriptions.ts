@@ -157,7 +157,6 @@ export async function subscriptionRoutes(server: FastifyInstance): Promise<void>
         select: {
           subscriptionTier: true,
           subscriptionStatus: true,
-          stripeSubscriptionId: true,
         },
       });
 
@@ -172,7 +171,6 @@ export async function subscriptionRoutes(server: FastifyInstance): Promise<void>
         success: true,
         tier: user.subscriptionTier,
         status: user.subscriptionStatus,
-        stripeSubscriptionId: user.stripeSubscriptionId,
       });
     }
   );

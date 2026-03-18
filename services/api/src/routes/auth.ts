@@ -25,6 +25,7 @@ import {
 } from '../lib/auth.js';
 import { verifyJwt } from '../middleware/auth.js';
 import { authRateLimit } from '../middleware/rate-limit.js';
+import { writeAuditLog } from '../middleware/audit-log.js';
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 
@@ -154,7 +155,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         passwordHash,
         emergencyQrToken,
       },
-      select: { id: true, displayName: true, email: true, phone: true, emergencyQrToken: true },
+      select: { id: true, displayName: true, email: true, phone: true },
     });
 
     const tokens = await issueTokenPair(server, user.id, user.email, user.phone);
@@ -166,7 +167,6 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         displayName: user.displayName,
         email: user.email ?? null,
         phone: user.phone ?? null,
-        emergencyQrToken: user.emergencyQrToken,
       },
       ...tokens,
     });
@@ -199,7 +199,6 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         email: true,
         phone: true,
         passwordHash: true,
-        emergencyQrToken: true,
       },
     });
 
@@ -210,6 +209,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
       : await verifyPassword(password, dummyHash).then(() => false);
 
     if (!user || !isValid) {
+      void writeAuditLog({ action: 'LOGIN_FAILURE', request });
       return reply.status(401).send({
         success: false,
         error: {
@@ -227,6 +227,8 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
 
     const tokens = await issueTokenPair(server, user.id, user.email, user.phone);
 
+    void writeAuditLog({ userId: user.id, action: 'LOGIN_SUCCESS', request });
+
     return reply.status(200).send({
       success: true,
       user: {
@@ -234,7 +236,6 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
         displayName: user.displayName,
         email: user.email ?? null,
         phone: user.phone ?? null,
-        emergencyQrToken: user.emergencyQrToken,
       },
       ...tokens,
     });
@@ -316,7 +317,7 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
 
   // ── DELETE /auth/account ──────────────────────────────────────────────────
 
-  server.delete('/account', { preHandler: [verifyJwt] }, async (request, reply) => {
+  server.delete('/account', { preHandler: [verifyJwt], config: { rateLimit: { max: 3, timeWindow: '1 minute' } } }, async (request, reply) => {
     const userId = request.user.id;
 
     // Revoke all refresh tokens for this user
@@ -345,6 +346,8 @@ export async function authRoutes(server: FastifyInstance): Promise<void> {
       where: { id: userId },
       data: { deletedAt: new Date() },
     });
+
+    void writeAuditLog({ userId: request.user.id, action: 'ACCOUNT_DELETED', request });
 
     return reply.status(200).send({ success: true });
   });

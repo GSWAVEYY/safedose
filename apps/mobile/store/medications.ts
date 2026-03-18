@@ -18,11 +18,14 @@ import {
   deleteMedication as dbDeleteMedication,
   searchMedications as dbSearchMedications,
 } from '../lib/db/medications';
+import { useUserStore } from './user';
 
 // ---------------------------------------------------------------------------
-// Placeholder user ID — replaced when auth is implemented in Sprint 2
+// Auth user ID helper — reads from Zustand state outside of React components
 // ---------------------------------------------------------------------------
-const PLACEHOLDER_USER_ID = 'local-user';
+function getUserId(): string {
+  return useUserStore.getState().userId ?? 'local-user';
+}
 
 // ---------------------------------------------------------------------------
 // State shape
@@ -86,7 +89,7 @@ export const useMedicationsStore = create<MedicationsState>((set, get) => ({
   loadMedications: async () => {
     set({ isLoading: true, error: null });
     try {
-      const medications = await getAllMedications(PLACEHOLDER_USER_ID);
+      const medications = await getAllMedications(getUserId());
       set({ medications, isLoading: false });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load medications';
@@ -97,7 +100,7 @@ export const useMedicationsStore = create<MedicationsState>((set, get) => ({
   saveMedication: async (data: MedicationCreate) => {
     set({ isLoading: true, error: null });
     try {
-      const medication = await dbCreateMedication(PLACEHOLDER_USER_ID, data);
+      const medication = await dbCreateMedication(getUserId(), data);
       set((state) => ({
         medications: [...state.medications, medication].sort((a, b) =>
           a.name.localeCompare(b.name)
@@ -115,7 +118,7 @@ export const useMedicationsStore = create<MedicationsState>((set, get) => ({
   editMedication: async (id: string, updates: Partial<MedicationUpdate>) => {
     set({ isLoading: true, error: null });
     try {
-      const updated = await dbUpdateMedication(id, PLACEHOLDER_USER_ID, updates);
+      const updated = await dbUpdateMedication(id, getUserId(), updates);
       if (updated) {
         set((state) => ({
           medications: state.medications
@@ -137,7 +140,7 @@ export const useMedicationsStore = create<MedicationsState>((set, get) => ({
   removeMedication: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const success = await dbDeleteMedication(id, PLACEHOLDER_USER_ID);
+      const success = await dbDeleteMedication(id, getUserId());
       if (success) {
         set((state) => ({
           medications: state.medications.filter((m) => m.id !== id),
@@ -171,7 +174,7 @@ export const useMedicationsStore = create<MedicationsState>((set, get) => ({
 
   searchMedications: async (query: string) => {
     try {
-      return await dbSearchMedications(PLACEHOLDER_USER_ID, query);
+      return await dbSearchMedications(getUserId(), query);
     } catch (err) {
       console.error('[store] searchMedications failed:', err);
       return [];
@@ -180,7 +183,7 @@ export const useMedicationsStore = create<MedicationsState>((set, get) => ({
 
   refreshMedication: async (id: string) => {
     try {
-      const medication = await getMedicationById(id, PLACEHOLDER_USER_ID);
+      const medication = await getMedicationById(id, getUserId());
       if (medication) {
         set((state) => ({
           medications: state.medications.map((m) => (m.id === id ? medication : m)),

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * SafeDose Drug Database Builder — CLI entry point
  *
