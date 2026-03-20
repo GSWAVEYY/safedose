@@ -15,12 +15,21 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { PermissionToggles } from './PermissionToggles';
+import { haptics } from '../../lib/haptics';
 import { useCaregivingStore } from '../../store/caregiving';
 import type { Relationship, CaregiverRole, RelationshipStatus } from '../../store/caregiving';
+
+const PRESS_SPRING = { damping: 15, stiffness: 200 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -94,6 +103,10 @@ export function RelationshipCard({
 
   const [expanded, setExpanded] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
+  const pressScale = useSharedValue(1);
+  const pressAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pressScale.value }],
+  }));
   const [localPermissions, setLocalPermissions] = useState<Record<string, boolean>>(
     relationship.permissions
   );
@@ -128,10 +141,20 @@ export function RelationshipCard({
   }, [t, displayName, relationship.id, revokeRelationship]);
 
   return (
+    <Animated.View style={pressAnimStyle}>
     <Card className={`mb-3 ${isRevoked ? 'opacity-60' : ''}`}>
       {/* Header row — always visible */}
       <Pressable
-        onPress={() => setExpanded((prev) => !prev)}
+        onPress={() => {
+          void haptics.light();
+          setExpanded((prev) => !prev);
+        }}
+        onPressIn={() => {
+          pressScale.value = withSpring(0.98, PRESS_SPRING);
+        }}
+        onPressOut={() => {
+          pressScale.value = withSpring(1, PRESS_SPRING);
+        }}
         accessible
         accessibilityRole="button"
         accessibilityLabel={t('caregiving.expandRelationship', { name: displayName })}
@@ -177,9 +200,13 @@ export function RelationshipCard({
         </View>
 
         {/* Chevron */}
-        <Text className="text-slate-400 text-lg ml-2" aria-hidden>
-          {expanded ? '⌃' : '⌄'}
-        </Text>
+        <View className="ml-2" aria-hidden={true}>
+          {expanded ? (
+            <ChevronUp size={18} color="#94A3B8" strokeWidth={2} />
+          ) : (
+            <ChevronDown size={18} color="#94A3B8" strokeWidth={2} />
+          )}
+        </View>
       </Pressable>
 
       {/* Expanded: permission toggles + revoke */}
@@ -217,5 +244,6 @@ export function RelationshipCard({
         </View>
       )}
     </Card>
+    </Animated.View>
   );
 }

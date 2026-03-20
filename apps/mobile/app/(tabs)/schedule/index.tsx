@@ -17,6 +17,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { CheckCircle } from 'lucide-react-native';
 
 import { useScheduleStore, type DoseItem, type ConfirmDoseOptions } from '../../../store/schedule';
 import { useUserStore } from '../../../store/user';
@@ -96,10 +98,7 @@ function EmptyState() {
   return (
     <View className="flex-1 items-center justify-center px-8 py-16">
       <View className="w-16 h-16 rounded-full bg-brand-50 items-center justify-center mb-4">
-        {/* Checkmark circle placeholder — replace with Lucide icon when available */}
-        <Text className="text-brand-500 text-2xl" accessibilityElementsHidden>
-          ✓
-        </Text>
+        <CheckCircle size={32} color="#14B8A6" aria-hidden={true} />
       </View>
       <Text
         className="text-neutral-800 text-xl font-bold text-center mb-2"
@@ -235,12 +234,14 @@ export default function ScheduleScreen() {
   // ---------------------------------------------------------------------------
 
   const renderDoseCard = useCallback(
-    ({ item }: { item: DoseItem }) => (
-      <DoseCard
-        dose={item}
-        onPress={handleDosePress}
-        onSwipeConfirm={handleSwipeConfirm}
-      />
+    ({ item, index }: { item: DoseItem; index: number }) => (
+      <Animated.View entering={FadeInDown.delay(index * 50).springify()}>
+        <DoseCard
+          dose={item}
+          onPress={handleDosePress}
+          onSwipeConfirm={handleSwipeConfirm}
+        />
+      </Animated.View>
     ),
     [handleDosePress, handleSwipeConfirm]
   );
@@ -255,7 +256,7 @@ export default function ScheduleScreen() {
   // ---------------------------------------------------------------------------
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50">
+    <SafeAreaView className="flex-1 bg-neutral-50" style={{ backgroundColor: 'rgba(59,130,246,0.06)' }}>
       {/* Screen header */}
       <View className="px-4 pt-2 pb-4">
         <Text

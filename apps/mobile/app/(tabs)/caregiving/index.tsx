@@ -18,6 +18,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Users, Heart, UserPlus } from 'lucide-react-native';
 import { useCaregivingStore, type DoseFeedEvent } from '../../../store/caregiving';
 import { RelationshipCard } from '../../../components/caregiving/RelationshipCard';
 import { InviteSheet } from '../../../components/caregiving/InviteSheet';
@@ -34,16 +36,18 @@ function EmptyState({
   message,
   subtext,
   action,
+  icon,
 }: {
   message: string;
   subtext?: string;
   action?: React.ReactNode;
+  icon?: React.ReactNode;
 }) {
   return (
     <View className="items-center py-12 px-6">
-      <Text className="text-slate-400 text-4xl mb-3" aria-hidden>
-        ○
-      </Text>
+      <View className="w-14 h-14 rounded-full bg-violet-50 items-center justify-center mb-3">
+        {icon ?? <Users size={28} color="#8B5CF6" aria-hidden={true} />}
+      </View>
       <Text className="text-slate-600 font-semibold text-base text-center">{message}</Text>
       {subtext && (
         <Text className="text-slate-400 text-sm text-center mt-1">{subtext}</Text>
@@ -201,12 +205,15 @@ export default function CaregivingScreen() {
   }, [clearError, loadRelationships, loadFeed]);
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-slate-50" style={{ backgroundColor: 'rgba(139,92,246,0.06)' }}>
       {/* Header */}
       <View className="px-4 pt-2 pb-4">
-        <Text className="text-2xl font-bold text-slate-800">
-          {t('tabs.caregiving')}
-        </Text>
+        <View className="flex-row items-center gap-2 mb-1">
+          <Users size={22} color="#8B5CF6" aria-hidden={true} />
+          <Text className="text-2xl font-bold text-slate-800">
+            {t('tabs.caregiving')}
+          </Text>
+        </View>
         <Text className="text-sm text-slate-500 mt-0.5">
           {t('caregiving.headerSubtext')}
         </Text>
@@ -246,6 +253,7 @@ export default function CaregivingScreen() {
                 <EmptyState
                   message={t('caregiving.noCaregivers')}
                   subtext={t('caregiving.noCaregiversSubtext')}
+                  icon={<UserPlus size={28} color="#8B5CF6" aria-hidden={true} />}
                   action={
                     <Button
                       label={t('caregiving.inviteCaregiver')}
@@ -257,21 +265,28 @@ export default function CaregivingScreen() {
                 />
               ) : (
                 <>
-                  {asPatient.map((rel) => (
-                    <RelationshipCard
+                  {asPatient.map((rel, index) => (
+                    <Animated.View
                       key={rel.id}
-                      relationship={rel}
-                      canEditPermissions
-                    />
+                      entering={FadeInDown.delay(index * 50).springify()}
+                    >
+                      <RelationshipCard
+                        relationship={rel}
+                        canEditPermissions
+                      />
+                    </Animated.View>
                   ))}
-                  <View className="mt-2">
+                  <Animated.View
+                    entering={FadeInDown.delay(asPatient.length * 50).springify()}
+                    className="mt-2"
+                  >
                     <Button
                       label={t('caregiving.inviteCaregiver')}
                       variant="secondary"
                       onPress={() => setShowInviteSheet(true)}
                       accessibilityLabel={t('caregiving.inviteCaregiverLabel')}
                     />
-                  </View>
+                  </Animated.View>
                 </>
               )}
             </>
@@ -284,17 +299,24 @@ export default function CaregivingScreen() {
                 <EmptyState
                   message={t('caregiving.noPatients')}
                   subtext={t('caregiving.noPatientsSubtext')}
+                  icon={<Heart size={28} color="#8B5CF6" aria-hidden={true} />}
                 />
               ) : (
                 <>
                   {/* Burnout prevention card — only visible when actively caregiving */}
-                  <BurnoutRiskCard />
-                  {asCaregiver.map((rel) => (
-                    <RelationshipCard
+                  <Animated.View entering={FadeInDown.delay(0).springify()}>
+                    <BurnoutRiskCard />
+                  </Animated.View>
+                  {asCaregiver.map((rel, index) => (
+                    <Animated.View
                       key={rel.id}
-                      relationship={rel}
-                      canEditPermissions={false}
-                    />
+                      entering={FadeInDown.delay((index + 1) * 50).springify()}
+                    >
+                      <RelationshipCard
+                        relationship={rel}
+                        canEditPermissions={false}
+                      />
+                    </Animated.View>
                   ))}
                 </>
               )}
@@ -310,8 +332,13 @@ export default function CaregivingScreen() {
                   subtext={t('caregiving.noFeedEventsSubtext')}
                 />
               ) : (
-                feed.map((event) => (
-                  <FeedEventRow key={event.id} event={event} />
+                feed.map((event, index) => (
+                  <Animated.View
+                    key={event.id}
+                    entering={FadeInDown.delay(index * 50).springify()}
+                  >
+                    <FeedEventRow event={event} />
+                  </Animated.View>
                 ))
               )}
             </>

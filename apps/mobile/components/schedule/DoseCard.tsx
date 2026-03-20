@@ -26,17 +26,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import type { DoseItem, DoseStatus } from '../../store/schedule';
-
-// ---------------------------------------------------------------------------
-// Haptic helper — graceful fallback if expo-haptics not installed
-// ---------------------------------------------------------------------------
-
-// expo-haptics is not in package.json for this sprint.
-// This stub is a no-op today; replace with real implementation when the
-// package is added in a future sprint.
-function triggerHaptic(_type: 'light' | 'success'): void {
-  // No-op until expo-haptics is added to dependencies.
-}
+import { haptics } from '../../lib/haptics';
 
 // ---------------------------------------------------------------------------
 // Status display config
@@ -131,6 +121,7 @@ const SPRING_CONFIG = { damping: 20, stiffness: 200 };
 
 export function DoseCard({ dose, onPress, onSwipeConfirm }: DoseCardProps) {
   const translateX = useSharedValue(0);
+  const pressScale = useSharedValue(1);
   const swipeConfirmed = useRef(false);
 
   const config = STATUS_CONFIG[dose.status];
@@ -139,9 +130,13 @@ export function DoseCard({ dose, onPress, onSwipeConfirm }: DoseCardProps) {
 
   const handleSwipeConfirm = useCallback(() => {
     if (!isActionable) return;
-    void triggerHaptic('success');
+    void haptics.success();
     onSwipeConfirm(dose);
   }, [isActionable, onSwipeConfirm, dose]);
+
+  const pressAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pressScale.value }],
+  }));
 
   const panGesture = Gesture.Pan()
     .enabled(isActionable)
@@ -197,9 +192,18 @@ export function DoseCard({ dose, onPress, onSwipeConfirm }: DoseCardProps) {
 
       {/* Card */}
       <GestureDetector gesture={panGesture}>
-        <Animated.View style={cardStyle}>
+        <Animated.View style={[cardStyle, pressAnimStyle]}>
           <Pressable
-            onPress={() => onPress(dose)}
+            onPress={() => {
+              void haptics.light();
+              onPress(dose);
+            }}
+            onPressIn={() => {
+              pressScale.value = withSpring(0.98, SPRING_CONFIG);
+            }}
+            onPressOut={() => {
+              pressScale.value = withSpring(1, SPRING_CONFIG);
+            }}
             disabled={isCompleted && dose.status !== 'missed'}
             accessibilityRole="button"
             accessibilityLabel={accessibilityLabel}

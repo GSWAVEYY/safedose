@@ -36,6 +36,7 @@ import Animated, {
 import type { DoseItem } from '../../store/schedule';
 import type { DoseEventType } from '@safedose/shared-types';
 import { scheduleMissedDoseFollowup } from '../../lib/notifications/index';
+import { haptics } from '../../lib/haptics';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -224,6 +225,7 @@ export function DoseConfirmSheet({
     setIsSubmitting(true);
     try {
       await onConfirm({ eventType: 'taken' });
+      haptics.success();
     } finally {
       setIsSubmitting(false);
     }
@@ -237,6 +239,7 @@ export function DoseConfirmSheet({
         eventType: 'skipped',
         notes: skipNote.trim() !== '' ? skipNote.trim() : undefined,
       });
+      haptics.warning();
     } finally {
       setIsSubmitting(false);
     }
@@ -264,6 +267,7 @@ export function DoseConfirmSheet({
     setIsSubmitting(true);
     try {
       await onConfirm({ eventType: 'late', confirmedAt });
+      haptics.success();
     } finally {
       setIsSubmitting(false);
     }

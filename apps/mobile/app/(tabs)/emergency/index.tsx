@@ -25,6 +25,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Phone, AlertTriangle, QrCode, Pill, Stethoscope, HeartPulse, UserRound } from 'lucide-react-native';
 import { useMedicationsStore } from '../../../store/medications';
 import { useUserStore } from '../../../store/user';
 import {
@@ -64,11 +66,13 @@ interface EditableCardState {
 
 interface SectionHeaderProps {
   title: string;
+  icon?: React.ReactNode;
 }
 
-function SectionHeader({ title }: SectionHeaderProps) {
+function SectionHeader({ title, icon }: SectionHeaderProps) {
   return (
-    <View className="mt-6 mb-3 pb-2 border-b-2 border-slate-200">
+    <View className="mt-6 mb-3 pb-2 border-b-2 border-slate-200 flex-row items-center gap-2">
+      {icon ? icon : null}
       <Text
         className="text-xl font-bold text-slate-800"
         accessibilityRole="header"
@@ -396,7 +400,7 @@ export default function EmergencyScreen() {
   function renderMedications() {
     return (
       <View>
-        <SectionHeader title={t('emergency.currentMedications')} />
+        <SectionHeader title={t('emergency.currentMedications')} icon={<Pill size={20} color="#475569" aria-hidden={true} />} />
         {activeMedications.length === 0 ? (
           <Text className="text-lg text-slate-500 italic">
             {t('emergency.noMedications')}
@@ -435,7 +439,7 @@ export default function EmergencyScreen() {
   function renderAllergies() {
     return (
       <View>
-        <SectionHeader title={t('emergency.allergies')} />
+        <SectionHeader title={t('emergency.allergies')} icon={<AlertTriangle size={20} color="#DC2626" aria-hidden={true} />} />
         <TagListEditor
           items={draft.allergies}
           onAdd={(v) => setDraft((d) => ({ ...d, allergies: [...d.allergies, v] }))}
@@ -457,7 +461,7 @@ export default function EmergencyScreen() {
   function renderMedicalConditions() {
     return (
       <View>
-        <SectionHeader title={t('emergency.medicalConditions')} />
+        <SectionHeader title={t('emergency.medicalConditions')} icon={<HeartPulse size={20} color="#475569" aria-hidden={true} />} />
         <TagListEditor
           items={draft.medicalConditions}
           onAdd={(v) =>
@@ -484,7 +488,7 @@ export default function EmergencyScreen() {
   function renderBloodType() {
     return (
       <View>
-        <SectionHeader title={t('emergency.bloodType')} />
+        <SectionHeader title={t('emergency.bloodType')} icon={<UserRound size={20} color="#475569" aria-hidden={true} />} />
         <BloodTypePicker
           value={draft.bloodType}
           onChange={(v) => setDraft((d) => ({ ...d, bloodType: v }))}
@@ -497,7 +501,7 @@ export default function EmergencyScreen() {
   function renderEmergencyContacts() {
     return (
       <View>
-        <SectionHeader title={t('emergency.emergencyContacts')} />
+        <SectionHeader title={t('emergency.emergencyContacts')} icon={<Phone size={20} color="#475569" aria-hidden={true} />} />
         {isEditing ? (
           <EmergencyContactForm
             contacts={draft.emergencyContacts}
@@ -531,7 +535,7 @@ export default function EmergencyScreen() {
   function renderPrimaryDoctor() {
     return (
       <View>
-        <SectionHeader title={t('emergency.primaryDoctor')} />
+        <SectionHeader title={t('emergency.primaryDoctor')} icon={<Stethoscope size={20} color="#475569" aria-hidden={true} />} />
         {isEditing ? (
           <View className="gap-3">
             <View>

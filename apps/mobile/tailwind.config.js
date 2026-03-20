@@ -66,29 +66,20 @@ module.exports = {
           neutral: '#64748B',
         },
 
-        // Legacy aliases (keep for backward compat with existing Button/Card)
-        primary: {
-          50:  '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-        },
-        danger: {
-          50:  '#fef2f2',
-          100: '#fee2e2',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',
-        },
+        // Surface
         surface: {
           DEFAULT: '#ffffff',
+          muted:   '#F8FAFC',
           dark:    '#0f172a',
+        },
+
+        // Module tint backgrounds — ultra-low opacity washes per feature zone
+        moduleTint: {
+          medications: 'rgba(13, 148, 136, 0.06)',   // teal  6%
+          schedule:    'rgba(59, 130, 246, 0.06)',    // blue  6%
+          caregiving:  'rgba(139, 92, 246, 0.06)',    // violet 6%
+          emergency:   'rgba(239, 68, 68, 0.06)',     // red   6%
+          settings:    'rgba(100, 116, 139, 0.04)',   // slate 4%
         },
       },
     },

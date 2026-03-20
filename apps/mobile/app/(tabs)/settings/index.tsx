@@ -9,6 +9,15 @@ import { ScrollView, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import {
+  ChevronRight,
+  CreditCard,
+  Globe,
+  Bell,
+  FileText,
+  Scale,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { useSubscriptionStore } from '../../../store/subscription';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -18,6 +27,7 @@ interface SettingsRowProps {
   description?: string;
   badge?: string;
   badgeVariant?: 'brand' | 'neutral';
+  icon?: LucideIcon;
   onPress: () => void;
   isLast?: boolean;
 }
@@ -29,6 +39,7 @@ function SettingsRow({
   description,
   badge,
   badgeVariant = 'neutral',
+  icon: Icon,
   onPress,
   isLast = false,
 }: SettingsRowProps) {
@@ -36,13 +47,21 @@ function SettingsRow({
     <Pressable
       onPress={onPress}
       className={[
-        'flex-row items-center justify-between px-5 py-4 active:bg-neutral-50 min-h-[56px]',
+        'flex-row items-center px-5 py-4 active:bg-neutral-50',
         !isLast ? 'border-b border-neutral-100' : '',
       ].join(' ')}
+      style={{ minHeight: 56 }}
       accessible
       accessibilityRole="button"
       accessibilityLabel={label}
     >
+      {/* Icon */}
+      {Icon && (
+        <View className="w-9 h-9 rounded-xl bg-neutral-100 items-center justify-center mr-3.5">
+          <Icon size={18} color="#64748B" strokeWidth={1.8} aria-hidden={true} />
+        </View>
+      )}
+
       <View className="flex-1 mr-3">
         <Text className="text-neutral-900 text-sm font-medium">{label}</Text>
         {description ? (
@@ -68,9 +87,7 @@ function SettingsRow({
             </Text>
           </View>
         ) : null}
-        <Text className="text-neutral-300 text-lg" accessible={false}>
-          →
-        </Text>
+        <ChevronRight size={18} color="#CBD5E1" strokeWidth={2} aria-hidden={true} />
       </View>
     </Pressable>
   );
@@ -98,7 +115,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top', 'bottom']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: 'rgba(100, 116, 139, 0.04)' }} edges={['top', 'bottom']}>
       {/* Header */}
       <View className="px-5 pt-4 pb-2">
         <Text className="text-neutral-900 text-2xl font-bold">
@@ -117,6 +134,7 @@ export default function SettingsScreen() {
           <SettingsRow
             label={t('settings.subscription')}
             description={t('settings.subscriptionDescription')}
+            icon={CreditCard}
             badge={TIER_BADGE[tier] ?? tier}
             badgeVariant={tier !== 'free' ? 'brand' : 'neutral'}
             onPress={() => router.push('/(tabs)/settings/subscription')}
@@ -130,6 +148,7 @@ export default function SettingsScreen() {
           <SettingsRow
             label={t('settings.language')}
             description={t('settings.languageDescription')}
+            icon={Globe}
             onPress={() => {
               // Sprint 3: language picker
             }}
@@ -137,6 +156,7 @@ export default function SettingsScreen() {
           <SettingsRow
             label={t('settings.notifications')}
             description={t('settings.notificationsDescription')}
+            icon={Bell}
             onPress={() => {
               // Sprint 3: notification preferences
             }}
@@ -149,12 +169,14 @@ export default function SettingsScreen() {
         <View className="bg-white rounded-2xl border border-neutral-200 mx-5 overflow-hidden">
           <SettingsRow
             label={t('settings.privacyPolicy')}
+            icon={FileText}
             onPress={() => {
               // Open privacy policy URL
             }}
           />
           <SettingsRow
             label={t('settings.termsOfService')}
+            icon={Scale}
             onPress={() => {
               // Open ToS URL
             }}
