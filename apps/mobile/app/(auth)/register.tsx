@@ -83,7 +83,7 @@ export default function RegisterScreen() {
     }
   }
 
-  function fieldError(field: string): JSX.Element | null {
+  function fieldError(field: string): React.JSX.Element | null {
     const msg = fieldErrors[field];
     if (!msg) return null;
     return (

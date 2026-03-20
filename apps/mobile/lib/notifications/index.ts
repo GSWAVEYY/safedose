@@ -12,6 +12,7 @@
  */
 
 import * as ExpoNotifications from 'expo-notifications';
+import { SchedulableTriggerInputTypes } from 'expo-notifications';
 import type { Schedule, Medication } from '@safedose/shared-types';
 
 import { getNextDoseTime } from './scheduler';
@@ -28,6 +29,8 @@ import { getNextDoseTime } from './scheduler';
 ExpoNotifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -156,6 +159,7 @@ export async function scheduleReminder(
         },
       },
       trigger: {
+        type: SchedulableTriggerInputTypes.DATE,
         date: triggerDate,
       },
     });
@@ -211,6 +215,7 @@ export async function scheduleMissedDoseFollowup(
         },
       },
       trigger: {
+        type: SchedulableTriggerInputTypes.DATE,
         date: followupTime,
       },
     });

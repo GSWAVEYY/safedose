@@ -11,7 +11,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // Set EXPO_PUBLIC_SENTRY_DSN in your .env or EAS secrets.
     // Leave undefined to disable Sentry (safe — it no-ops without a DSN).
     // PHI POLICY: only opaque IDs and non-health event data reach Sentry.
-    // @ts-expect-error — app.config.ts runs in Node (Expo CLI), process.env is available
     EXPO_PUBLIC_SENTRY_DSN: process.env['EXPO_PUBLIC_SENTRY_DSN'],
   },
   orientation: 'portrait',
@@ -42,6 +41,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     'expo-router',
     'expo-secure-store',
+    '@sentry/react-native',
+    'expo-sharing',
+    'expo-web-browser',
     [
       'expo-camera',
       {
