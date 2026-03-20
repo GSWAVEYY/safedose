@@ -15,6 +15,7 @@
   "dependencies": {
     "@safedose/shared-types": "workspace:*",
     "@sentry/react-native": "^8.4.0",
+    "@shopify/flash-list": "^2.3.0",
     "@tanstack/react-query": "^5.0.0",
     "expo": "~51.0.0",
     "expo-camera": "~15.0.0",

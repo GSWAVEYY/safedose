@@ -35,6 +35,9 @@ importers:
       '@sentry/react-native':
         specifier: ^8.4.0
         version: 8.4.0(expo@51.0.39(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(react-native@0.74.0(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0))(react-native@0.74.0(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
+      '@shopify/flash-list':
+        specifier: ^2.3.0
+        version: 2.3.0(@babel/runtime@7.28.6)(react-native@0.74.0(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
       '@tanstack/react-query':
         specifier: ^5.0.0
         version: 5.90.21(react@18.2.0)
@@ -234,6 +237,9 @@ importers:
       '@types/node':
         specifier: ^20.12.7
         version: 20.19.37
+      '@vitest/coverage-v8':
+        specifier: ^4.1.0
+        version: 4.1.0(vitest@4.1.0(@opentelemetry/api@1.9.0)(@types/node@20.19.37)(vite@8.0.0(@types/node@20.19.37)(esbuild@0.27.4)(jiti@1.21.7)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)))
       prisma:
         specifier: ^5.13.0
         version: 5.22.0
@@ -2117,6 +2123,13 @@ packages:
   '@sentry/types@10.43.0':
     resolution: {integrity: sha512-AbKGWFGmDJkl0F7yvNTqZEovMJTAEdVbsZC/Zy6w2PFUk7pHUtIJQ5DXkBxJ9QVZhOjGmHQRLKvXYaeXmI/6PA==}
     engines: {node: '>=18'}
+
+  '@shopify/flash-list@2.3.0':
+    resolution: {integrity: sha512-DR7VuN8KJHTYj9zv1/IhpqrMBMQyeeW/DCWCbVQAAkWhHrc6ylIbXOY+qK93CuHABV+dNHXK/3V6p4wCSW/+wA==}
+    peerDependencies:
+      '@babel/runtime': '*'
+      react: '*'
+      react-native: '*'
 
   '@sideway/address@4.1.5':
     resolution: {integrity: sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q==}
@@ -9131,6 +9144,12 @@ snapshots:
   '@sentry/types@10.43.0':
     dependencies:
       '@sentry/core': 10.43.0
+
+  '@shopify/flash-list@2.3.0(@babel/runtime@7.28.6)(react-native@0.74.0(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@babel/runtime': 7.28.6
+      react: 18.2.0
+      react-native: 0.74.0(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.2.79)(react@18.2.0)
 
   '@sideway/address@4.1.5':
     dependencies:
