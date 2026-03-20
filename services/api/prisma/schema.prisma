@@ -1,5 +1,5 @@
 // SafeDose — Prisma Schema
-// Database: PostgreSQL (Neon for production)
+// Database: PostgreSQL (Supabase for production)
 
 generator client {
   provider = "prisma-client-js"

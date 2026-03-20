@@ -21,8 +21,7 @@
 #       fly secrets set STRIPE_FAMILY_ANNUAL_PRICE_ID="price_..." --app safedose-api
 #
 # Database migrations:
-#   Run migrations against Neon BEFORE deploying a new schema:
-#       DATABASE_URL="postgresql://..." npx prisma migrate deploy
+#   Migrations are applied via Supabase MCP or Dashboard.
 #   The deploy script does NOT auto-migrate — migrations are a deliberate
 #   manual step to prevent accidental data loss in production.
 
