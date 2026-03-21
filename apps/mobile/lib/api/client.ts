@@ -1,8 +1,12 @@
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+
+const DEFAULT_API_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
 const API_BASE_URL =
-  (Constants.expoConfig?.extra?.['apiUrl'] as string | undefined) ?? 'http://localhost:3001';
+  (Constants.expoConfig?.extra?.['apiUrl'] as string | undefined) ??
+  `http://${DEFAULT_API_HOST}:3001`;
 
 export const TOKEN_KEYS = {
   access: 'auth_access_token',
