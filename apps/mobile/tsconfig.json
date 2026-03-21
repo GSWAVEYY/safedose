@@ -32,7 +32,8 @@
     "**/*.tsx",
     ".expo/types/**/*.d.ts",
     "expo-env.d.ts",
-    "nativewind-env.d.ts"
+    "nativewind-env.d.ts",
+    ".expo/types/**/*.ts"
   ],
   "exclude": [
     "**/__tests__/**",
