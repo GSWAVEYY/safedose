@@ -11,10 +11,6 @@ import '@fastify/jwt';
  *   - fastify.jwt.sign()
  *   - request.user (decoded payload)
  *
- * PLACEHOLDER — Sprint 2 will implement full auth flow including:
- * - Phone/email OTP verification
- * - Biometric re-authentication signal from mobile
- * - Refresh token rotation
  */
 export async function verifyJwt(request: FastifyRequest, reply: FastifyReply): Promise<void> {
   try {

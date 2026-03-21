@@ -431,8 +431,10 @@ export async function runMigrations(db: SQLiteDatabase): Promise<void> {
       continue;
     }
 
-    // eslint-disable-next-line no-console
-    console.log(`[DB] Running migration v${migration.version}: ${migration.description}`);
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log(`[DB] Running migration v${migration.version}: ${migration.description}`);
+    }
 
     await db.withExclusiveTransactionAsync(async (txn) => {
       await migration.up(txn as unknown as SQLiteDatabase);
@@ -442,8 +444,10 @@ export async function runMigrations(db: SQLiteDatabase): Promise<void> {
       );
     });
 
-    // eslint-disable-next-line no-console
-    console.log(`[DB] Migration v${migration.version} complete`);
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log(`[DB] Migration v${migration.version} complete`);
+    }
   }
 }
 

@@ -83,7 +83,8 @@ export function initSentry(): void {
       ? `safedose-api@${process.env['npm_package_version']}`
       : undefined;
   } catch {
-    // Non-fatal
+    // Non-fatal — but warn so startup logs show the failure
+    process.stderr.write('[sentry] Failed to read package version for release tag\n');
   }
 
   Sentry.init({

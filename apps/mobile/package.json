@@ -36,6 +36,7 @@
     "expo-status-bar": "~55.0.4",
     "expo-web-browser": "^55.0.10",
     "i18next": "^23.0.0",
+    "intl-pluralrules": "^2.0.1",
     "lucide-react-native": "^0.577.0",
     "nativewind": "^4.0.0",
     "react": "19.2.0",
